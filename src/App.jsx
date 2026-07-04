@@ -595,8 +595,7 @@ export default function App() {
     bump();
   };
 
-  const primary   = tab!=="hebdo" ? DATA[tab].filter(s=>s.priority)  : [];
-  const secondary = tab!=="hebdo" ? DATA[tab].filter(s=>!s.priority) : [];
+  const allSections = tab !== "hebdo" ? DATA[tab] : [];
 
   return (
     <TickContext.Provider value={bump}>
@@ -639,17 +638,7 @@ export default function App() {
 
           {/* Content */}
           <div style={{ padding:"16px 16px", paddingBottom:"calc(env(safe-area-inset-bottom,0px) + 90px)" }}>
-            {tab!=="hebdo" && (
-              <>
-                <SortedSections sections={primary} tab={tab}/>
-                {secondary.length>0 && (
-                  <>
-                    <Divider label="À faire aussi"/>
-                    <SortedSections sections={secondary} tab={tab}/>
-                  </>
-                )}
-              </>
-            )}
+            {tab!=="hebdo" && <SortedSections sections={allSections} tab={tab}/>}
             {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
           </div>
 
