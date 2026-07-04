@@ -86,10 +86,10 @@ if (!document.getElementById("meiso-kf")) {
     @keyframes pop       { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
     @keyframes sparkDot  { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
     @keyframes ensoTrace { from{stroke-dashoffset:880} to{stroke-dashoffset:0} }
-    @keyframes ensoBreathe { 0%,100%{opacity:0.15;filter:blur(18px)} 50%{opacity:0.35;filter:blur(28px)} }
+    @keyframes ensoBreathe { 0%,100%{opacity:0.5;transform:translate(-50%,-50%) scale(0.96)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.04)} }
     @keyframes ensoFadeIn { from{opacity:0} to{opacity:1} }
     @keyframes ensoFadeOut { from{opacity:1} to{opacity:0} }
-    @keyframes textRise { from{opacity:0;transform:translate(-50%,8px)} to{opacity:1;transform:translate(-50%,0)} }
+    @keyframes textRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   `;
   document.head.appendChild(s);
 }
@@ -99,80 +99,75 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, duration); return () => clearTimeout(t); }, []);
   const r = 110;
   const circ = 2 * Math.PI * r;
-  const s = 280; // SVG size
+  const s = 280;
 
   return (
-    <>
-      {/* Full viewport backdrop */}
-      <div onClick={onDone} style={{
-        position:"fixed", top:0, left:0, width:"100vw", height:"100vh",
-        zIndex:100, background:"rgba(4,36,58,0.97)",
-        animation:`ensoFadeIn 0.5s ease forwards`,
-      }}/>
-
-      {/* Centered container — absolutely independent of any parent */}
-      <div onClick={onDone} style={{
-        position:"fixed",
-        top:"50%", left:"50%",
-        transform:"translate(-50%, -50%)",
-        zIndex:101,
+    <div onClick={onDone} style={{
+      position:"fixed", inset:0, zIndex:100,
+      display:"flex", alignItems:"center", justifyContent:"center",
+      background:"rgba(4,36,58,0.97)",
+      cursor:"pointer",
+      animation:"ensoFadeIn 0.5s ease both",
+    }}>
+      {/* Relative box, flex-centers its single in-flow child (the text) */}
+      <div style={{
+        position:"relative",
         width:`${s}px`, height:`${s}px`,
-        cursor:"pointer",
+        display:"flex", alignItems:"center", justifyContent:"center",
       }}>
-        {/* Breathing glow */}
+
+        {/* Glow — absolute, out of flow */}
         <div style={{
-          position:"absolute", inset:0, borderRadius:"50%",
-          background:`radial-gradient(circle, rgba(42,191,191,0.18) 0%, transparent 65%)`,
-          animation:`ensoBreathe 3s ease-in-out 0.5s infinite`,
+          position:"absolute", top:"50%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          width:`${s}px`, height:`${s}px`, borderRadius:"50%",
+          background:"radial-gradient(circle, rgba(42,191,191,0.16) 0%, transparent 62%)",
+          animation:"ensoBreathe 3s ease-in-out 0.5s infinite",
+          pointerEvents:"none",
         }}/>
 
-        {/* Enso SVG */}
+        {/* Enso SVG — absolute, out of flow */}
         <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`}
-          style={{ position:"absolute", inset:0 }}>
+          style={{ position:"absolute", top:0, left:0, pointerEvents:"none" }}>
           <circle cx={s/2} cy={s/2} r={r} fill="none" stroke="rgba(42,191,191,0.08)" strokeWidth="1"/>
           <circle cx={s/2} cy={s/2} r={r} fill="none"
             stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
             strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
             strokeDashoffset={circ}
             style={{
-              animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards`,
-              filter:`drop-shadow(0 0 8px rgba(42,191,191,0.55))`,
+              animation:"ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s both",
+              filter:"drop-shadow(0 0 8px rgba(42,191,191,0.55))",
             }}
             transform={`rotate(-90 ${s/2} ${s/2})`}
           />
         </svg>
 
-        {/* Text — centered in the box via flexbox */}
+        {/* Text — the ONLY in-flow child, so flexbox centers it perfectly */}
         <div style={{
-          position:"absolute",
-          top:0, left:0, right:0, bottom:0,
-          display:"flex", flexDirection:"column",
-          alignItems:"center", justifyContent:"center",
-          textAlign:"center", padding:"24px",
-          boxSizing:"border-box",
+          position:"relative", zIndex:2,
+          textAlign:"center", maxWidth:`${s - 48}px`,
         }}>
           <div style={{
-            fontSize:"24px", fontWeight:"700", color:"#ffffff",
-            lineHeight:1.2,
-            animation:`textRise 0.6s ease 1.1s both`, opacity:0,
+            fontSize:"24px", fontWeight:"700", color:"#ffffff", lineHeight:1.2,
+            animation:"textRise 0.6s ease 1s both",
           }}>{label}</div>
           {hint && (
             <div style={{
               fontSize:"12px", fontWeight:"400", color:"rgba(184,216,232,0.65)",
               marginTop:"10px", lineHeight:1.5,
-              animation:`textRise 0.6s ease 1.3s both`, opacity:0,
+              animation:"textRise 0.6s ease 1.2s both",
             }}>{hint}</div>
           )}
           {sublabel && (
             <div style={{
               fontSize:"10px", fontWeight:"300", color:"rgba(184,216,232,0.35)",
               letterSpacing:"0.14em", marginTop:"12px",
-              animation:`textRise 0.6s ease 1.5s both`, opacity:0,
+              animation:"textRise 0.6s ease 1.4s both",
             }}>{sublabel}</div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
