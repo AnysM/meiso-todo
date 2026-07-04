@@ -95,7 +95,7 @@ if (!document.getElementById("meiso-kf")) {
 }
 
 // ── Enso celebration ──────────────────────────────────────────────────────────
-function EnsoCelebration({ label, sublabel, duration = 3400, onDone }) {
+function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, duration); return () => clearTimeout(t); }, []);
   const r = 120;
   const circ = 2 * Math.PI * r;
@@ -148,6 +148,13 @@ function EnsoCelebration({ label, sublabel, duration = 3400, onDone }) {
             letterSpacing:"-0.01em", lineHeight:1.3,
             animation:`textRise 0.6s ease 1.1s both`, opacity:0,
           }}>{label}</div>
+          {hint && (
+            <div style={{
+              fontSize:"13px", fontWeight:"400", color:`rgba(184,216,232,0.65)`,
+              letterSpacing:"0.02em", marginTop:"10px", lineHeight:1.5,
+              animation:`textRise 0.6s ease 1.3s both`, opacity:0,
+            }}>{hint}</div>
+          )}
           {sublabel && (
             <div style={{
               fontSize:"11px", fontWeight:"300", color:"rgba(184,216,232,0.4)",
@@ -272,7 +279,7 @@ function Section({ data, tab, day }) {
   // Detect transition to allDone
   useEffect(() => {
     if (allDone && !prevAllDone.current) {
-      triggerSection(data.color);
+      triggerSection(data.color, data.section);
     }
     prevAllDone.current = allDone;
   }, [allDone]);
@@ -439,18 +446,21 @@ function HebdoView() {
 export default function App() {
   const [tab, setTab] = useState("matin");
   const [tick, setTick] = useState(0);
-  const [celeb, setCeleb] = useState(null); // null | "section" | "all"
-  const [celebColor, setCelebColor] = useState(C.teal);
+  const [celeb, setCeleb] = useState(null);
+  const [celebMeta, setCelebMeta] = useState({});
   const prevProgress = useRef({});
 
   const bump = useCallback(() => setTick(n=>n+1), []);
 
-  const triggerSection = useCallback((color) => {
-    setCelebColor(color);
+  const triggerSection = useCallback((color, sectionName) => {
+    const { done, total } = countProgress(tab);
+    const remaining = total - done;
+    setCelebMeta({ color, sectionName, remaining, total, done });
     setCeleb("section");
-  }, []);
+  }, [tab]);
 
   const triggerAll = useCallback(() => {
+    setCelebMeta({});
     setCeleb("all");
   }, []);
 
@@ -485,11 +495,17 @@ export default function App() {
     <TickContext.Provider value={bump}>
       <CelebContext.Provider value={{ triggerSection, triggerAll }}>
 
-        {celeb === "section" && (
-          <EnsoCelebration label="Nickel" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
-        )}
+        {celeb === "section" && (() => {
+          const { remaining, sectionName } = celebMeta;
+          const hint = remaining === 0
+            ? "Tout est bouclé ici."
+            : remaining === 1
+            ? "Plus qu'une tâche dans tout l'onglet."
+            : `Encore ${remaining} tâche${remaining > 1 ? "s" : ""} à faire.`;
+          return <EnsoCelebration label="Nickel" hint={hint} sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />;
+        })()}
         {celeb === "all" && (
-          <EnsoCelebration label="Le centre est prêt" sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
+          <EnsoCelebration label="Le centre est prêt" hint="Tout est fait pour aujourd'hui." sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
         )}
 
         <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
