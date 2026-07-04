@@ -101,41 +101,61 @@ function EnsoCelebration({ label, sublabel, duration = 3400, onDone }) {
   const circ = 2 * Math.PI * r;
   return (
     <div onClick={onDone} style={{
-      position:"fixed", inset:0, zIndex:100,
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      position:"fixed", top:0, left:0, right:0, bottom:0, zIndex:100,
+      display:"flex", alignItems:"center", justifyContent:"center",
       cursor:"pointer",
       animation:`ensoFadeIn 0.6s ease forwards`,
     }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(4,36,58,0.88)" }}/>
-      <div style={{
-        position:"absolute", width:"280px", height:"280px", borderRadius:"50%",
-        background:`radial-gradient(circle, rgba(42,191,191,0.22) 0%, transparent 70%)`,
-        animation:`ensoBreathe 3s ease-in-out infinite`,
-      }}/>
-      <svg width="280" height="280" viewBox="0 0 280 280" style={{ position:"relative", zIndex:2 }}>
-        <circle cx="140" cy="140" r={r} fill="none" stroke="rgba(42,191,191,0.1)" strokeWidth="1"/>
-        <circle
-          cx="140" cy="140" r={r} fill="none"
-          stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
-          strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
-          strokeDashoffset={circ}
-          style={{ animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.2s forwards`, filter:`drop-shadow(0 0 6px rgba(42,191,191,0.5))` }}
-          transform="rotate(-90 140 140)"
-        />
-      </svg>
-      <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", zIndex:3 }}>
+      {/* Dark wash */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, bottom:0, background:"rgba(4,36,58,0.9)" }}/>
+
+      {/* Everything centered in one block */}
+      <div style={{ position:"relative", width:"280px", height:"280px", flexShrink:0 }}>
+
+        {/* Breathing glow */}
         <div style={{
-          fontSize:"26px", fontWeight:"700", color:"#ffffff",
-          letterSpacing:"-0.01em", lineHeight:1.3,
-          animation:`textRise 0.6s ease 1s both`, opacity:0,
-        }}>{label}</div>
-        {sublabel && (
+          position:"absolute", top:0, left:0, width:"100%", height:"100%",
+          borderRadius:"50%",
+          background:`radial-gradient(circle, rgba(42,191,191,0.2) 0%, transparent 68%)`,
+          animation:`ensoBreathe 3s ease-in-out 0.5s infinite`,
+        }}/>
+
+        {/* Enso circle */}
+        <svg width="280" height="280" viewBox="0 0 280 280"
+          style={{ position:"absolute", top:0, left:0 }}>
+          <circle cx="140" cy="140" r={r} fill="none" stroke="rgba(42,191,191,0.08)" strokeWidth="1"/>
+          <circle
+            cx="140" cy="140" r={r} fill="none"
+            stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
+            strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
+            strokeDashoffset={circ}
+            style={{
+              animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards`,
+              filter:`drop-shadow(0 0 8px rgba(42,191,191,0.6))`,
+            }}
+            transform="rotate(-90 140 140)"
+          />
+        </svg>
+
+        {/* Text centered in circle */}
+        <div style={{
+          position:"absolute", top:0, left:0, width:"100%", height:"100%",
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+          textAlign:"center",
+        }}>
           <div style={{
-            fontSize:"11px", fontWeight:"300", color:"rgba(184,216,232,0.45)",
-            letterSpacing:"0.14em", marginTop:"10px",
-            animation:`textRise 0.6s ease 1.4s both`, opacity:0,
-          }}>{sublabel}</div>
-        )}
+            fontSize:"26px", fontWeight:"700", color:"#ffffff",
+            letterSpacing:"-0.01em", lineHeight:1.3,
+            animation:`textRise 0.6s ease 1.1s both`, opacity:0,
+          }}>{label}</div>
+          {sublabel && (
+            <div style={{
+              fontSize:"11px", fontWeight:"300", color:"rgba(184,216,232,0.4)",
+              letterSpacing:"0.14em", marginTop:"10px",
+              animation:`textRise 0.6s ease 1.5s both`, opacity:0,
+            }}>{sublabel}</div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -467,7 +487,7 @@ export default function App() {
         <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
 
           {celeb === "section" && (
-            <EnsoCelebration label="Nickel 🙌" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
+            <EnsoCelebration label="Nickel" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
           )}
           {celeb === "all" && (
             <EnsoCelebration label="Le centre est prêt" sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
