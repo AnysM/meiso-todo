@@ -101,13 +101,13 @@ function EnsoCelebration({ label, sublabel, duration = 3400, onDone }) {
   const circ = 2 * Math.PI * r;
   return (
     <div onClick={onDone} style={{
-      position:"fixed", top:0, left:0, right:0, bottom:0, zIndex:100,
+      position:"fixed", top:0, left:0, width:"100vw", height:"100vh", zIndex:100,
       display:"flex", alignItems:"center", justifyContent:"center",
       cursor:"pointer",
       animation:`ensoFadeIn 0.6s ease forwards`,
     }}>
       {/* Dark wash */}
-      <div style={{ position:"absolute", top:0, left:0, right:0, bottom:0, background:"rgba(4,36,58,0.9)" }}/>
+      <div style={{ position:"fixed", top:0, left:0, width:"100vw", height:"100vh", background:"rgba(4,36,58,0.9)" }}/>
 
       {/* Everything centered in one block */}
       <div style={{ position:"relative", width:"280px", height:"280px", flexShrink:0 }}>
