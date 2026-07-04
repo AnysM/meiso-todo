@@ -1,4 +1,4 @@
-import { useState, useCallback, createContext, useContext, useRef } from "react";
+import { useState, useCallback, createContext, useContext, useEffect, useRef } from "react";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
@@ -9,6 +9,7 @@ const C = {
   border:    "rgba(168,216,232,0.1)",
   eau:       "#2a7fa0",
   eauLight:  "#4aa8cc",
+  teal:      "#2ABFBF",
   sel:       "#b8d8e8",
   lumiere:   "#e0f2f9",
   sage:      "#3a7a6a",
@@ -18,7 +19,6 @@ const C = {
   lavande:   "#5a6aa0",
   lavLight:  "#8899cc",
   alert:     "#c46050",
-  alertLight:"#f0a090",
   textPrimary:   "rgba(224,242,249,0.95)",
   textSecondary: "rgba(184,216,232,0.6)",
   textMuted:     "rgba(168,216,232,0.3)",
@@ -55,8 +55,11 @@ const DATA = {
   },
 };
 
+// ── Contexts ──────────────────────────────────────────────────────────────────
 const TickContext = createContext(null);
+const CelebContext = createContext(null);
 const useTick = () => useContext(TickContext);
+const useCeleb = () => useContext(CelebContext);
 
 function getKey(tab, section, task, day) { return `meiso||${tab}||${day||""}||${section}||${task}`; }
 function readChecked(key) { try { return localStorage.getItem(key)==="1"; } catch { return false; } }
@@ -73,30 +76,201 @@ function hexToRgb(hex) {
   return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
 
-// ── Ripple animation ──────────────────────────────────────────────────────────
-function Ripple({ color }) {
+// ── Inject keyframes ──────────────────────────────────────────────────────────
+if (!document.getElementById("meiso-kf")) {
+  const s = document.createElement("style");
+  s.id = "meiso-kf";
+  s.textContent = `
+    @keyframes ripple    { from{opacity:1;transform:scale(0.5)} to{opacity:0;transform:scale(2.2)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pop       { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+    @keyframes bubbleUp  { 0%{transform:translateY(0) scale(1);opacity:0.9} 100%{transform:translateY(-120px) scale(0.3);opacity:0} }
+    @keyframes sectionFlash { 0%{opacity:0;transform:scale(0.95)} 30%{opacity:1;transform:scale(1.01)} 100%{opacity:0;transform:scale(1)} }
+    @keyframes waveExpand { from{transform:translate(-50%,-50%) scale(0);opacity:0.6} to{transform:translate(-50%,-50%) scale(3);opacity:0} }
+    @keyframes fullBubble { 0%{opacity:0.8;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-110vh) scale(0.5)} }
+    @keyframes msgIn      { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.7)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1.05)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)} }
+    @keyframes shimmer    { 0%{background-position:200% center} 100%{background-position:-200% center} }
+  `;
+  document.head.appendChild(s);
+}
+
+// ── Bubble burst on section complete ──────────────────────────────────────────
+function SectionBurst({ color, onDone }) {
+  const count = 8;
+  useEffect(() => { const t = setTimeout(onDone, 900); return ()=>clearTimeout(t); }, []);
   return (
-    <span style={{
-      position:"absolute", inset:0, borderRadius:"inherit",
-      background:`radial-gradient(circle, rgba(${hexToRgb(color)},0.35) 0%, transparent 70%)`,
-      animation:"ripple 0.45s ease-out forwards",
-      pointerEvents:"none",
-    }}/>
+    <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden", borderRadius:"14px", zIndex:5 }}>
+      {Array.from({length:count}).map((_,i) => {
+        const size = 6 + Math.random()*8;
+        const left = 10 + Math.random()*80;
+        const delay = Math.random()*0.3;
+        const dur = 0.6 + Math.random()*0.3;
+        return (
+          <div key={i} style={{
+            position:"absolute",
+            bottom: "20%",
+            left: `${left}%`,
+            width: size, height: size,
+            borderRadius:"50%",
+            background:`rgba(${hexToRgb(color)},0.7)`,
+            animation:`bubbleUp ${dur}s ease-out ${delay}s forwards`,
+          }}/>
+        );
+      })}
+    </div>
   );
 }
 
-// Inject keyframes once
-const styleTag = document.createElement("style");
-styleTag.textContent = `
-@keyframes ripple { from { opacity:1; transform:scale(0.6); } to { opacity:0; transform:scale(1.8); } }
-@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeOut { from { opacity:1; max-height:80px; } to { opacity:0; max-height:0; padding:0; margin:0; } }
-@keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 100%{transform:scale(1)} }
-`;
-document.head.appendChild(styleTag);
+// ── Full screen celebration ───────────────────────────────────────────────────
+function FullCelebration({ onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 3200); return ()=>clearTimeout(t); }, []);
+
+  const bubbles = Array.from({length:28}).map((_,i) => ({
+    size: 8 + Math.random()*20,
+    left: Math.random()*100,
+    delay: Math.random()*0.8,
+    dur: 1.8 + Math.random()*1.2,
+    color: [C.teal, C.eauLight, C.sel, C.sageLight, C.lavLight][Math.floor(Math.random()*5)],
+  }));
+
+  const msgs = ["✦ Section complète", "( meïsō )", "Bien joué"];
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:100,
+      pointerEvents:"none",
+      overflow:"hidden",
+    }}>
+      {/* Dark overlay, fades in/out */}
+      <div style={{
+        position:"absolute", inset:0,
+        background:`radial-gradient(ellipse at 50% 60%, rgba(${hexToRgb(C.teal)},0.18) 0%, rgba(4,36,58,0.85) 70%)`,
+        animation:"sectionFlash 3s ease forwards",
+      }}/>
+
+      {/* Wave ring */}
+      <div style={{
+        position:"absolute", top:"50%", left:"50%",
+        width:"200px", height:"200px",
+        borderRadius:"50%",
+        border:`2px solid rgba(${hexToRgb(C.teal)},0.6)`,
+        animation:"waveExpand 1.2s ease-out 0.1s forwards",
+        opacity:0,
+      }}/>
+      <div style={{
+        position:"absolute", top:"50%", left:"50%",
+        width:"200px", height:"200px",
+        borderRadius:"50%",
+        border:`1px solid rgba(${hexToRgb(C.sel)},0.4)`,
+        animation:"waveExpand 1.2s ease-out 0.35s forwards",
+        opacity:0,
+      }}/>
+
+      {/* Bubbles floating up */}
+      {bubbles.map((b,i) => (
+        <div key={i} style={{
+          position:"absolute",
+          bottom: `-${b.size}px`,
+          left: `${b.left}%`,
+          width: b.size, height: b.size,
+          borderRadius:"50%",
+          background:`rgba(${hexToRgb(b.color)},0.55)`,
+          animation:`fullBubble ${b.dur}s ease-out ${b.delay}s forwards`,
+        }}/>
+      ))}
+
+      {/* Center message */}
+      <div style={{
+        position:"absolute", top:"50%", left:"50%",
+        animation:"msgIn 2.8s ease forwards",
+        opacity:0,
+        textAlign:"center",
+        pointerEvents:"none",
+      }}>
+        <div style={{
+          fontSize:"13px", letterSpacing:"0.2em", textTransform:"uppercase",
+          color:`rgba(${hexToRgb(C.sel)},0.7)`,
+          marginBottom:"8px",
+          fontWeight:"600",
+        }}>Section complète</div>
+        <div style={{
+          fontSize:"32px", fontWeight:"800", letterSpacing:"-0.02em",
+          background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight})`,
+          backgroundSize:"200% auto",
+          WebkitBackgroundClip:"text",
+          WebkitTextFillColor:"transparent",
+          animation:"shimmer 1.5s linear infinite",
+        }}>( meïsō )</div>
+      </div>
+    </div>
+  );
+}
+
+// ── All-done celebration (bigger) ─────────────────────────────────────────────
+function AllDoneCelebration({ onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 4000); return ()=>clearTimeout(t); }, []);
+
+  const bubbles = Array.from({length:40}).map((_,i) => ({
+    size: 6 + Math.random()*24,
+    left: Math.random()*100,
+    delay: Math.random()*1.2,
+    dur: 2 + Math.random()*1.5,
+    color: [C.teal, C.eauLight, C.sel, C.sageLight, C.lavLight, C.lumiere][Math.floor(Math.random()*6)],
+  }));
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:100,
+      pointerEvents:"none", overflow:"hidden",
+    }}>
+      <div style={{
+        position:"absolute", inset:0,
+        background:`radial-gradient(ellipse at 50% 50%, rgba(${hexToRgb(C.teal)},0.28) 0%, rgba(4,36,58,0.92) 70%)`,
+        animation:"sectionFlash 4s ease forwards",
+      }}/>
+
+      {[0,0.2,0.4].map((d,i) => (
+        <div key={i} style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:"220px", height:"220px", borderRadius:"50%",
+          border:`${i===0?"2px":"1px"} solid rgba(${hexToRgb(C.teal)},${0.7-i*0.2})`,
+          animation:`waveExpand 1.4s ease-out ${d}s forwards`, opacity:0,
+        }}/>
+      ))}
+
+      {bubbles.map((b,i) => (
+        <div key={i} style={{
+          position:"absolute", bottom:`-${b.size}px`, left:`${b.left}%`,
+          width:b.size, height:b.size, borderRadius:"50%",
+          background:`rgba(${hexToRgb(b.color)},0.5)`,
+          animation:`fullBubble ${b.dur}s ease-out ${b.delay}s forwards`,
+        }}/>
+      ))}
+
+      <div style={{
+        position:"absolute", top:"50%", left:"50%",
+        animation:"msgIn 3.6s ease forwards", opacity:0, textAlign:"center",
+      }}>
+        <div style={{ fontSize:"11px", letterSpacing:"0.25em", textTransform:"uppercase", color:C.textMuted, marginBottom:"10px" }}>
+          Tout est fait
+        </div>
+        <div style={{
+          fontSize:"38px", fontWeight:"800", letterSpacing:"-0.02em",
+          background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight}, ${C.teal})`,
+          backgroundSize:"300% auto",
+          WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+          animation:"shimmer 1.2s linear infinite",
+        }}>( meïsō )</div>
+        <div style={{ fontSize:"14px", color:`rgba(${hexToRgb(C.sel)},0.6)`, marginTop:"10px", letterSpacing:"0.05em" }}>
+          Le centre est prêt ✦
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── CheckItem ─────────────────────────────────────────────────────────────────
-function CheckItem({ label, storageKey, color, onCheck }) {
+function CheckItem({ label, storageKey, color }) {
   const tick = useTick();
   const checked = readChecked(storageKey);
   const [rippling, setRippling] = useState(false);
@@ -107,30 +281,29 @@ function CheckItem({ label, storageKey, color, onCheck }) {
     e.stopPropagation();
     const next = !checked;
     writeChecked(storageKey, next);
-    if (next) { setRippling(true); setTimeout(()=>setRippling(false), 450); }
+    if (next) { setRippling(true); setTimeout(()=>setRippling(false), 500); }
     tick();
-    if (next && onCheck) setTimeout(onCheck, 300);
-  }, [storageKey, checked, tick, onCheck]);
+  }, [storageKey, checked, tick]);
 
   return (
     <div onClick={toggle} style={{
       display:"flex", alignItems:"center", gap:"14px",
-      padding:"14px 14px",
-      marginBottom: checked ? "0" : "6px",
-      borderRadius:"12px",
+      padding:"14px 14px", marginBottom:"6px", borderRadius:"12px",
       position:"relative", overflow:"hidden",
-      background: checked
-        ? "rgba(10,58,82,0.3)"
-        : isWarn ? `rgba(196,146,74,0.1)` : isHL ? `rgba(${hexToRgb(color)},0.12)` : `rgba(${hexToRgb(color)},0.07)`,
+      background: checked ? "rgba(10,58,82,0.3)"
+        : isWarn ? "rgba(196,146,74,0.1)" : isHL ? `rgba(${hexToRgb(color)},0.12)` : `rgba(${hexToRgb(color)},0.07)`,
       border:`1px solid ${checked ? "rgba(168,216,232,0.06)" : isWarn ? "rgba(196,146,74,0.2)" : isHL ? `rgba(${hexToRgb(color)},0.35)` : `rgba(${hexToRgb(color)},0.18)`}`,
       cursor:"pointer", userSelect:"none", WebkitTapHighlightColor:"transparent",
-      transition:"background 0.2s, border 0.2s, opacity 0.2s",
-      minHeight:"52px",
-      opacity: checked ? 0.55 : 1,
+      transition:"all 0.2s", minHeight:"52px", opacity: checked ? 0.55 : 1,
     }}>
-      {rippling && <Ripple color={color}/>}
-
-      {/* Checkbox */}
+      {rippling && (
+        <span style={{
+          position:"absolute", inset:0, borderRadius:"inherit",
+          background:`radial-gradient(circle, rgba(${hexToRgb(color)},0.35) 0%, transparent 70%)`,
+          animation:"ripple 0.45s ease-out forwards",
+          pointerEvents:"none",
+        }}/>
+      )}
       <div style={{
         width:"30px", height:"30px", borderRadius:"8px", flexShrink:0,
         border: checked ? "none" : `2px solid rgba(${hexToRgb(color)},0.45)`,
@@ -146,7 +319,6 @@ function CheckItem({ label, storageKey, color, onCheck }) {
           </svg>
         )}
       </div>
-
       <span style={{
         fontSize:"15px", lineHeight:"1.4", fontWeight: checked ? "400" : "500",
         color: checked ? C.textMuted : isWarn ? C.amberLight : isHL ? C.eauLight : C.textPrimary,
@@ -160,7 +332,10 @@ function CheckItem({ label, storageKey, color, onCheck }) {
 // ── Section ───────────────────────────────────────────────────────────────────
 function Section({ data, tab, day }) {
   const tick = useTick();
+  const { triggerSection, triggerAll } = useCeleb();
   const [open, setOpen] = useState(true);
+  const [bursting, setBursting] = useState(false);
+  const prevAllDone = useRef(false);
 
   const keys = data.tasks.map(t => getKey(tab, data.section, t, day));
   const checkedStates = keys.map(readChecked);
@@ -168,19 +343,30 @@ function Section({ data, tab, day }) {
   const total = data.tasks.length;
   const allDone = doneCount === total;
 
-  // Sort: unchecked first, checked last
+  // Detect transition to allDone
+  useEffect(() => {
+    if (allDone && !prevAllDone.current) {
+      setBursting(true);
+      triggerSection(data.color);
+    }
+    prevAllDone.current = allDone;
+  }, [allDone]);
+
   const sorted = data.tasks
-    .map((task, i) => ({ task, key: keys[i], done: checkedStates[i] }))
-    .sort((a, b) => a.done - b.done);
+    .map((task,i) => ({ task, key:keys[i], done:checkedStates[i] }))
+    .sort((a,b) => a.done - b.done);
 
   return (
     <div style={{
       marginBottom:"12px",
       opacity: allDone ? 0.6 : 1,
-      transition:"opacity 0.3s",
-      order: allDone ? 99 : 0,
+      transition:"opacity 0.4s",
+      position:"relative",
     }}>
-      {/* Header */}
+      {bursting && (
+        <SectionBurst color={data.color} onDone={() => setBursting(false)} />
+      )}
+
       <div onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", gap:"10px",
         padding:"10px 14px",
@@ -190,7 +376,7 @@ function Section({ data, tab, day }) {
         borderLeft:`4px solid ${data.color}`,
         border:`1px solid ${allDone ? `rgba(${hexToRgb(data.color)},0.25)` : C.border}`,
         borderLeft:`4px solid ${data.color}`,
-        transition:"background 0.2s",
+        transition:"background 0.3s",
       }}>
         <span style={{ fontSize:"17px", lineHeight:1, flexShrink:0 }}>{data.icon}</span>
         <div style={{ flex:1, minWidth:0 }}>
@@ -214,7 +400,6 @@ function Section({ data, tab, day }) {
         </svg>
       </div>
 
-      {/* Tasks */}
       {open && (
         <div style={{
           padding:"10px 8px 6px",
@@ -225,8 +410,8 @@ function Section({ data, tab, day }) {
           borderBottom:`1px solid ${C.border}`,
           animation:"slideDown 0.2s ease",
         }}>
-          {sorted.map(({ task, key, done }) => (
-            <CheckItem key={key} label={task} storageKey={key} color={data.color} />
+          {sorted.map(({task,key}) => (
+            <CheckItem key={key} label={task} storageKey={key} color={data.color}/>
           ))}
         </div>
       )}
@@ -234,18 +419,14 @@ function Section({ data, tab, day }) {
   );
 }
 
-// ── SortedSections : re-sorts sections when all done ──────────────────────────
+// ── SortedSections ────────────────────────────────────────────────────────────
 function SortedSections({ sections, tab, day }) {
-  const tick = useTick();
-
   const withDone = sections.map(s => {
     const keys = s.tasks.map(t => getKey(tab, s.section, t, day));
-    const done = keys.every(readChecked);
-    return { ...s, allDone: done };
+    return { ...s, allDone: keys.every(readChecked) };
   });
-  const sorted = [...withDone].sort((a, b) => a.allDone - b.allDone);
-
-  return sorted.map((s, i) => <Section key={s.section} data={s} tab={tab} day={day} />);
+  return [...withDone].sort((a,b) => a.allDone - b.allDone)
+    .map(s => <Section key={s.section} data={s} tab={tab} day={day}/>);
 }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────
@@ -264,7 +445,7 @@ function ProgressBar({ tab, day }) {
         <div style={{
           height:"100%", width:`${pct}%`, borderRadius:"3px", transition:"width 0.35s ease",
           background: allDone
-            ? `linear-gradient(90deg,${C.sage},${C.eau})`
+            ? `linear-gradient(90deg,${C.sage},${C.teal})`
             : `linear-gradient(90deg,${C.eau},${C.eauLight})`,
         }}/>
       </div>
@@ -285,8 +466,7 @@ function Divider({ label }) {
 // ── Hebdo ─────────────────────────────────────────────────────────────────────
 function HebdoView() {
   const todayIdx = new Date().getDay();
-  const todayName = DAYS[todayIdx===0?6:todayIdx-1];
-  const [day, setDay] = useState(todayName);
+  const [day, setDay] = useState(DAYS[todayIdx===0?6:todayIdx-1]);
   const data = DATA.hebdo[day];
   const sections = [
     { section:"Journée (8h-15h)", color:C.eauLight, icon:"☀️", tasks:data.journee },
@@ -298,14 +478,14 @@ function HebdoView() {
       <div style={{ display:"flex", gap:"8px", overflowX:"auto", paddingBottom:"12px", marginBottom:"16px", scrollbarWidth:"none" }}>
         {DAYS.map(d=>(
           <button key={d} onClick={()=>setDay(d)} style={{
-            flexShrink:0, padding:"10px 14px", borderRadius:"12px", border:`1px solid ${d===day?C.eau:C.border}`,
+            flexShrink:0, padding:"10px 14px", borderRadius:"12px",
+            border:`1px solid ${d===day?C.eau:C.border}`,
             background:d===day?C.eau:C.bgCard,
             color:d===day?C.lumiere:C.textSecondary,
             fontSize:"13px", fontWeight:d===day?"800":"400", cursor:"pointer",
           }}>{d.slice(0,3)}</button>
         ))}
       </div>
-
       {data.produit && (
         <div style={{
           display:"flex", alignItems:"center", gap:"12px",
@@ -320,13 +500,10 @@ function HebdoView() {
           </div>
         </div>
       )}
-
       <ProgressBar tab="hebdo" day={day}/>
       <SortedSections sections={sections} tab="hebdo" day={day}/>
       {sections.length===0 && (
-        <div style={{ textAlign:"center", padding:"60px 0", color:C.textMuted, fontSize:"15px" }}>
-          Pas de tâches spécifiques ce jour.
-        </div>
+        <div style={{ textAlign:"center", padding:"60px 0", color:C.textMuted }}>Pas de tâches spécifiques ce jour.</div>
       )}
     </div>
   );
@@ -336,7 +513,32 @@ function HebdoView() {
 export default function App() {
   const [tab, setTab] = useState("matin");
   const [tick, setTick] = useState(0);
-  const bump = useCallback(()=>setTick(n=>n+1),[]);
+  const [celeb, setCeleb] = useState(null); // null | "section" | "all"
+  const [celebColor, setCelebColor] = useState(C.teal);
+  const prevProgress = useRef({});
+
+  const bump = useCallback(() => setTick(n=>n+1), []);
+
+  const triggerSection = useCallback((color) => {
+    setCelebColor(color);
+    setCeleb("section");
+  }, []);
+
+  const triggerAll = useCallback(() => {
+    setCeleb("all");
+  }, []);
+
+  // Watch for all-done
+  useEffect(() => {
+    if (tab === "hebdo") return;
+    const { done, total } = countProgress(tab);
+    const key = tab;
+    const prev = prevProgress.current[key] || 0;
+    if (done === total && total > 0 && prev < total) {
+      setTimeout(() => setCeleb("all"), 600);
+    }
+    prevProgress.current[key] = done;
+  });
 
   const tabs = [
     { id:"matin", label:"Matin", icon:"☀️" },
@@ -347,6 +549,7 @@ export default function App() {
   const resetAll = () => {
     if (!confirm("Réinitialiser toutes les tâches ?")) return;
     Object.keys(localStorage).filter(k=>k.startsWith("meiso||")).forEach(k=>localStorage.removeItem(k));
+    prevProgress.current = {};
     bump();
   };
 
@@ -355,60 +558,69 @@ export default function App() {
 
   return (
     <TickContext.Provider value={bump}>
-      <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
+      <CelebContext.Provider value={{ triggerSection, triggerAll }}>
+        <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
 
-        {/* Header */}
-        <div style={{
-          position:"sticky", top:0, zIndex:10, background:C.bg,
-          paddingTop:"env(safe-area-inset-top,14px)",
-          borderBottom:`1px solid ${C.border}`,
-        }}>
-          <div style={{ padding:"16px 20px 0" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"14px" }}>
-              <div>
-                <div style={{ fontSize:"11px", color:C.textMuted, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:"3px" }}>
-                  {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}
+          {celeb === "section" && (
+            <FullCelebration onDone={() => setCeleb(null)} />
+          )}
+          {celeb === "all" && (
+            <AllDoneCelebration onDone={() => setCeleb(null)} />
+          )}
+
+          {/* Header */}
+          <div style={{
+            position:"sticky", top:0, zIndex:10, background:C.bg,
+            paddingTop:"env(safe-area-inset-top,14px)",
+            borderBottom:`1px solid ${C.border}`,
+          }}>
+            <div style={{ padding:"16px 20px 0" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"14px" }}>
+                <div>
+                  <div style={{ fontSize:"11px", color:C.textMuted, letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:"3px" }}>
+                    {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}
+                  </div>
+                  <div style={{ fontSize:"22px", fontWeight:"800", letterSpacing:"-0.03em", color:C.lumiere }}>
+                    meïsō <span style={{ color:C.teal, fontWeight:"300" }}>·</span> tâches
+                  </div>
                 </div>
-                <div style={{ fontSize:"22px", fontWeight:"800", letterSpacing:"-0.03em", color:C.lumiere }}>
-                  meïsō <span style={{ color:C.eau, fontWeight:"300" }}>·</span> tâches
-                </div>
+                <button onClick={resetAll} style={{
+                  background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:"10px",
+                  color:C.textMuted, fontSize:"12px", padding:"8px 12px", cursor:"pointer",
+                }}>↺ Reset</button>
               </div>
-              <button onClick={resetAll} style={{
-                background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:"10px",
-                color:C.textMuted, fontSize:"12px", padding:"8px 12px", cursor:"pointer",
-              }}>↺ Reset</button>
-            </div>
-            <div style={{ display:"flex" }}>
-              {tabs.map(t=>(
-                <button key={t.id} onClick={()=>setTab(t.id)} style={{
-                  flex:1, padding:"10px 6px", border:"none",
-                  borderBottom: tab===t.id ? `3px solid ${C.eauLight}` : "3px solid transparent",
-                  background:"transparent",
-                  color: tab===t.id ? C.eauLight : C.textMuted,
-                  fontSize:"13px", fontWeight:tab===t.id?"700":"400", cursor:"pointer",
-                }}>{t.icon} {t.label}</button>
-              ))}
+              <div style={{ display:"flex" }}>
+                {tabs.map(t=>(
+                  <button key={t.id} onClick={()=>setTab(t.id)} style={{
+                    flex:1, padding:"10px 6px", border:"none",
+                    borderBottom: tab===t.id ? `3px solid ${C.teal}` : "3px solid transparent",
+                    background:"transparent",
+                    color: tab===t.id ? C.teal : C.textMuted,
+                    fontSize:"13px", fontWeight:tab===t.id?"700":"400", cursor:"pointer",
+                  }}>{t.icon} {t.label}</button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <div style={{ padding:"20px 16px", paddingBottom:"env(safe-area-inset-bottom,40px)" }}>
-          {tab!=="hebdo" && (
-            <>
-              <ProgressBar tab={tab} key={`pb-${tab}-${tick}`}/>
-              <SortedSections sections={primary} tab={tab}/>
-              {secondary.length>0 && (
-                <>
-                  <Divider label="À faire aussi"/>
-                  <SortedSections sections={secondary} tab={tab}/>
-                </>
-              )}
-            </>
-          )}
-          {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
+          {/* Content */}
+          <div style={{ padding:"20px 16px", paddingBottom:"env(safe-area-inset-bottom,40px)" }}>
+            {tab!=="hebdo" && (
+              <>
+                <ProgressBar tab={tab} key={`pb-${tab}-${tick}`}/>
+                <SortedSections sections={primary} tab={tab}/>
+                {secondary.length>0 && (
+                  <>
+                    <Divider label="À faire aussi"/>
+                    <SortedSections sections={secondary} tab={tab}/>
+                  </>
+                )}
+              </>
+            )}
+            {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
+          </div>
         </div>
-      </div>
+      </CelebContext.Provider>
     </TickContext.Provider>
   );
 }
