@@ -99,71 +99,76 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, duration); return () => clearTimeout(t); }, []);
   const r = 120;
   const circ = 2 * Math.PI * r;
+  const cx = 200, cy = 200, size = 400;
+
   return (
     <div onClick={onDone} style={{
       position:"fixed", top:0, left:0, width:"100vw", height:"100vh", zIndex:100,
       display:"flex", alignItems:"center", justifyContent:"center",
       cursor:"pointer",
-      animation:`ensoFadeIn 0.6s ease forwards`,
+      background:"rgba(4,36,58,0.92)",
+      animation:`ensoFadeIn 0.5s ease forwards`,
     }}>
-      {/* Dark wash */}
-      <div style={{ position:"fixed", top:0, left:0, width:"100vw", height:"100vh", background:"rgba(4,36,58,0.9)" }}/>
+      {/* Single SVG — circle + foreignObject text, all coordinates in the same space */}
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+        style={{ overflow:"visible" }}>
 
-      {/* Everything centered in one block */}
-      <div style={{ position:"relative", width:"280px", height:"280px", flexShrink:0 }}>
+        {/* Glow filter */}
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
 
-        {/* Breathing glow */}
-        <div style={{
-          position:"absolute", top:0, left:0, width:"100%", height:"100%",
-          borderRadius:"50%",
-          background:`radial-gradient(circle, rgba(42,191,191,0.2) 0%, transparent 68%)`,
-          animation:`ensoBreathe 3s ease-in-out 0.5s infinite`,
-        }}/>
+        {/* Breathing glow circle */}
+        <circle cx={cx} cy={cy} r={r + 20} fill="rgba(42,191,191,0.12)"
+          style={{ animation:`ensoBreathe 3s ease-in-out 0.5s infinite` }}/>
 
-        {/* Enso circle */}
-        <svg width="280" height="280" viewBox="0 0 280 280"
-          style={{ position:"absolute", top:0, left:0 }}>
-          <circle cx="140" cy="140" r={r} fill="none" stroke="rgba(42,191,191,0.08)" strokeWidth="1"/>
-          <circle
-            cx="140" cy="140" r={r} fill="none"
-            stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
-            strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
-            strokeDashoffset={circ}
-            style={{
-              animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards`,
-              filter:`drop-shadow(0 0 8px rgba(42,191,191,0.6))`,
-            }}
-            transform="rotate(-90 140 140)"
-          />
-        </svg>
+        {/* Ghost track */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(42,191,191,0.08)" strokeWidth="1"/>
 
-        {/* Text centered in circle */}
-        <div style={{
-          position:"absolute", top:0, left:0, width:"100%", height:"100%",
-          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-          textAlign:"center",
-        }}>
-          <div style={{
-            fontSize:"26px", fontWeight:"700", color:"#ffffff",
-            letterSpacing:"-0.01em", lineHeight:1.3,
-            animation:`textRise 0.6s ease 1.1s both`, opacity:0,
-          }}>{label}</div>
-          {hint && (
+        {/* Enso arc */}
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
+          strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
+          strokeDashoffset={circ}
+          filter="url(#glow)"
+          style={{ animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards` }}
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+
+        {/* Text via foreignObject — guaranteed same coordinate space as the circle */}
+        <foreignObject x={cx - r + 10} y={cy - r + 10} width={(r - 10) * 2} height={(r - 10) * 2}>
+          <div xmlns="http://www.w3.org/1999/xhtml" style={{
+            width:"100%", height:"100%",
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center",
+            textAlign:"center",
+            fontFamily:"'Nunito', sans-serif",
+          }}>
             <div style={{
-              fontSize:"13px", fontWeight:"400", color:`rgba(184,216,232,0.65)`,
-              letterSpacing:"0.02em", marginTop:"10px", lineHeight:1.5,
-              animation:`textRise 0.6s ease 1.3s both`, opacity:0,
-            }}>{hint}</div>
-          )}
-          {sublabel && (
-            <div style={{
-              fontSize:"11px", fontWeight:"300", color:"rgba(184,216,232,0.4)",
-              letterSpacing:"0.14em", marginTop:"10px",
-              animation:`textRise 0.6s ease 1.5s both`, opacity:0,
-            }}>{sublabel}</div>
-          )}
-        </div>
-      </div>
+              fontSize:"26px", fontWeight:"700", color:"#ffffff",
+              lineHeight:1.2,
+              animation:`textRise 0.6s ease 1.1s both`, opacity:0,
+            }}>{label}</div>
+            {hint && (
+              <div style={{
+                fontSize:"12px", fontWeight:"400", color:"rgba(184,216,232,0.65)",
+                marginTop:"8px", lineHeight:1.5, padding:"0 8px",
+                animation:`textRise 0.6s ease 1.3s both`, opacity:0,
+              }}>{hint}</div>
+            )}
+            {sublabel && (
+              <div style={{
+                fontSize:"10px", fontWeight:"300", color:"rgba(184,216,232,0.35)",
+                letterSpacing:"0.14em", marginTop:"12px",
+                animation:`textRise 0.6s ease 1.5s both`, opacity:0,
+              }}>{sublabel}</div>
+            )}
+          </div>
+        </foreignObject>
+      </svg>
     </div>
   );
 }
