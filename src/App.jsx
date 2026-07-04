@@ -97,9 +97,9 @@ if (!document.getElementById("meiso-kf")) {
 // ── Enso celebration ──────────────────────────────────────────────────────────
 function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, duration); return () => clearTimeout(t); }, []);
-  const r = 120;
+  const r = 110;
   const circ = 2 * Math.PI * r;
-  const cx = 200, cy = 200, size = 400;
+  const cx = 140, cy = 140, size = 280;
 
   return (
     <div onClick={onDone} style={{
@@ -138,8 +138,8 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
           transform={`rotate(-90 ${cx} ${cy})`}
         />
 
-        {/* Text via foreignObject — guaranteed same coordinate space as the circle */}
-        <foreignObject x={cx - r + 10} y={cy - r + 10} width={(r - 10) * 2} height={(r - 10) * 2}>
+        {/* Text via foreignObject — positioned relative to circle center */}
+        <foreignObject x="22" y="22" width="216" height="216">
           <div xmlns="http://www.w3.org/1999/xhtml" style={{
             width:"100%", height:"100%",
             display:"flex", flexDirection:"column",
