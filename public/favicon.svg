@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#2ABFBF"/>
-  <!-- left paren -->
-  <path d="M10 8 Q5 16 10 24" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-  <!-- right paren -->
-  <path d="M22 8 Q27 16 22 24" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-  <text x="16" y="20" font-family="sans-serif" font-weight="bold" font-size="9" fill="white" text-anchor="middle">meïsō</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2ABFBF"/>
+  <!-- left parenthesis -->
+  <path d="M 150 150 Q 105 256 150 362" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"/>
+  <!-- right parenthesis -->
+  <path d="M 362 150 Q 407 256 362 362" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"/>
+  <!-- lowercase m -->
+  <text x="256" y="256" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="150" fill="#ffffff" text-anchor="middle" dominant-baseline="central">m</text>
 </svg>
