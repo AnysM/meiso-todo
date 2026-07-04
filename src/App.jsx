@@ -145,16 +145,16 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
         {/* Text — the ONLY in-flow child, so flexbox centers it perfectly */}
         <div style={{
           position:"relative", zIndex:2,
-          textAlign:"center", maxWidth:`${s - 48}px`,
+          textAlign:"center", maxWidth:"180px",
         }}>
           <div style={{
-            fontSize:"24px", fontWeight:"700", color:"#ffffff", lineHeight:1.2,
+            fontSize:"26px", fontWeight:"700", color:"#ffffff", lineHeight:1.25,
             animation:"textRise 0.6s ease 1s both",
           }}>{label}</div>
           {hint && (
             <div style={{
-              fontSize:"12px", fontWeight:"400", color:"rgba(184,216,232,0.65)",
-              marginTop:"10px", lineHeight:1.5,
+              fontSize:"12px", fontWeight:"400", color:"rgba(184,216,232,0.6)",
+              marginTop:"12px", lineHeight:1.5, maxWidth:"170px", marginLeft:"auto", marginRight:"auto",
               animation:"textRise 0.6s ease 1.2s both",
             }}>{hint}</div>
           )}
