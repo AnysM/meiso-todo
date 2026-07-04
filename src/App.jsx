@@ -84,188 +84,58 @@ if (!document.getElementById("meiso-kf")) {
     @keyframes ripple    { from{opacity:1;transform:scale(0.5)} to{opacity:0;transform:scale(2.2)} }
     @keyframes slideDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
     @keyframes pop       { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
-    @keyframes bubbleUp  { 0%{transform:translateY(0) scale(1);opacity:0.9} 100%{transform:translateY(-120px) scale(0.3);opacity:0} }
-    @keyframes sectionFlash { 0%{opacity:0;transform:scale(0.95)} 30%{opacity:1;transform:scale(1.01)} 100%{opacity:0;transform:scale(1)} }
-    @keyframes waveExpand { from{transform:translate(-50%,-50%) scale(0);opacity:0.6} to{transform:translate(-50%,-50%) scale(3);opacity:0} }
-    @keyframes fullBubble { 0%{opacity:0.8;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-110vh) scale(0.5)} }
-    @keyframes msgIn      { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.7)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1.05)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)} }
-    @keyframes shimmer    { 0%{background-position:200% center} 100%{background-position:-200% center} }
-    @keyframes todoSpark  { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-200%) scale(0)} }
-    @keyframes sparkDot   { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+    @keyframes sparkDot  { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+    @keyframes ensoTrace { from{stroke-dashoffset:880} to{stroke-dashoffset:0} }
+    @keyframes ensoBreathe { 0%,100%{opacity:0.15;filter:blur(18px)} 50%{opacity:0.35;filter:blur(28px)} }
+    @keyframes ensoFadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes ensoFadeOut { from{opacity:1} to{opacity:0} }
+    @keyframes textRise { from{opacity:0;transform:translate(-50%,8px)} to{opacity:1;transform:translate(-50%,0)} }
   `;
   document.head.appendChild(s);
 }
 
-// ── Bubble burst on section complete ──────────────────────────────────────────
-function SectionBurst({ color, onDone }) {
-  const count = 8;
-  useEffect(() => { const t = setTimeout(onDone, 900); return ()=>clearTimeout(t); }, []);
+// ── Enso celebration ──────────────────────────────────────────────────────────
+function EnsoCelebration({ label, sublabel, duration = 3400, onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, duration); return () => clearTimeout(t); }, []);
+  const r = 120;
+  const circ = 2 * Math.PI * r;
   return (
-    <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden", borderRadius:"14px", zIndex:5 }}>
-      {Array.from({length:count}).map((_,i) => {
-        const size = 6 + Math.random()*8;
-        const left = 10 + Math.random()*80;
-        const delay = Math.random()*0.3;
-        const dur = 0.6 + Math.random()*0.3;
-        return (
-          <div key={i} style={{
-            position:"absolute",
-            bottom: "20%",
-            left: `${left}%`,
-            width: size, height: size,
-            borderRadius:"50%",
-            background:`rgba(${hexToRgb(color)},0.7)`,
-            animation:`bubbleUp ${dur}s ease-out ${delay}s forwards`,
-          }}/>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Full screen celebration ───────────────────────────────────────────────────
-function FullCelebration({ onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 3200); return ()=>clearTimeout(t); }, []);
-
-  const bubbles = Array.from({length:28}).map((_,i) => ({
-    size: 8 + Math.random()*20,
-    left: Math.random()*100,
-    delay: Math.random()*0.8,
-    dur: 1.8 + Math.random()*1.2,
-    color: [C.teal, C.eauLight, C.sel, C.sageLight, C.lavLight][Math.floor(Math.random()*5)],
-  }));
-
-  const msgs = ["✦ Section complète", "( meïsō )", "Bien joué"];
-
-  return (
-    <div style={{
+    <div onClick={onDone} style={{
       position:"fixed", inset:0, zIndex:100,
-      pointerEvents:"none",
-      overflow:"hidden",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      cursor:"pointer",
+      animation:`ensoFadeIn 0.6s ease forwards`,
     }}>
-      {/* Dark overlay, fades in/out */}
+      <div style={{ position:"absolute", inset:0, background:"rgba(4,36,58,0.88)" }}/>
       <div style={{
-        position:"absolute", inset:0,
-        background:`radial-gradient(ellipse at 50% 60%, rgba(${hexToRgb(C.teal)},0.18) 0%, rgba(4,36,58,0.85) 70%)`,
-        animation:"sectionFlash 3s ease forwards",
+        position:"absolute", width:"280px", height:"280px", borderRadius:"50%",
+        background:`radial-gradient(circle, rgba(42,191,191,0.22) 0%, transparent 70%)`,
+        animation:`ensoBreathe 3s ease-in-out infinite`,
       }}/>
-
-      {/* Wave ring */}
-      <div style={{
-        position:"absolute", top:"50%", left:"50%",
-        width:"200px", height:"200px",
-        borderRadius:"50%",
-        border:`2px solid rgba(${hexToRgb(C.teal)},0.6)`,
-        animation:"waveExpand 1.2s ease-out 0.1s forwards",
-        opacity:0,
-      }}/>
-      <div style={{
-        position:"absolute", top:"50%", left:"50%",
-        width:"200px", height:"200px",
-        borderRadius:"50%",
-        border:`1px solid rgba(${hexToRgb(C.sel)},0.4)`,
-        animation:"waveExpand 1.2s ease-out 0.35s forwards",
-        opacity:0,
-      }}/>
-
-      {/* Bubbles floating up */}
-      {bubbles.map((b,i) => (
-        <div key={i} style={{
-          position:"absolute",
-          bottom: `-${b.size}px`,
-          left: `${b.left}%`,
-          width: b.size, height: b.size,
-          borderRadius:"50%",
-          background:`rgba(${hexToRgb(b.color)},0.55)`,
-          animation:`fullBubble ${b.dur}s ease-out ${b.delay}s forwards`,
-        }}/>
-      ))}
-
-      {/* Center message */}
-      <div style={{
-        position:"absolute", top:"50%", left:"50%",
-        animation:"msgIn 2.8s ease forwards",
-        opacity:0,
-        textAlign:"center",
-        pointerEvents:"none",
-      }}>
+      <svg width="280" height="280" viewBox="0 0 280 280" style={{ position:"relative", zIndex:2 }}>
+        <circle cx="140" cy="140" r={r} fill="none" stroke="rgba(42,191,191,0.1)" strokeWidth="1"/>
+        <circle
+          cx="140" cy="140" r={r} fill="none"
+          stroke={C.teal} strokeWidth="1.5" strokeLinecap="round"
+          strokeDasharray={`${circ * 0.88} ${circ * 0.12}`}
+          strokeDashoffset={circ}
+          style={{ animation:`ensoTrace 1.4s cubic-bezier(0.4,0,0.2,1) 0.2s forwards`, filter:`drop-shadow(0 0 6px rgba(42,191,191,0.5))` }}
+          transform="rotate(-90 140 140)"
+        />
+      </svg>
+      <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", zIndex:3 }}>
         <div style={{
-          fontSize:"48px", letterSpacing:"-0.02em", textTransform:"none",
-          color:`rgba(${hexToRgb(C.sel)},0.7)`,
-          marginBottom:"8px",
-          fontWeight:"600",
-        }}>Nickel 🙌</div>
-        <div style={{
-          fontSize:"11px", fontWeight:"400", letterSpacing:"0.15em", opacity:0.4,
-          background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight})`,
-          backgroundSize:"200% auto",
-          WebkitBackgroundClip:"text",
-          WebkitTextFillColor:"transparent",
-          animation:"shimmer 1.5s linear infinite",
-        }}>( meïsō )</div>
-      </div>
-    </div>
-  );
-}
-
-// ── All-done celebration (bigger) ─────────────────────────────────────────────
-function AllDoneCelebration({ onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 4000); return ()=>clearTimeout(t); }, []);
-
-  const bubbles = Array.from({length:40}).map((_,i) => ({
-    size: 6 + Math.random()*24,
-    left: Math.random()*100,
-    delay: Math.random()*1.2,
-    dur: 2 + Math.random()*1.5,
-    color: [C.teal, C.eauLight, C.sel, C.sageLight, C.lavLight, C.lumiere][Math.floor(Math.random()*6)],
-  }));
-
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:100,
-      pointerEvents:"none", overflow:"hidden",
-    }}>
-      <div style={{
-        position:"absolute", inset:0,
-        background:`radial-gradient(ellipse at 50% 50%, rgba(${hexToRgb(C.teal)},0.28) 0%, rgba(4,36,58,0.92) 70%)`,
-        animation:"sectionFlash 4s ease forwards",
-      }}/>
-
-      {[0,0.2,0.4].map((d,i) => (
-        <div key={i} style={{
-          position:"absolute", top:"50%", left:"50%",
-          width:"220px", height:"220px", borderRadius:"50%",
-          border:`${i===0?"2px":"1px"} solid rgba(${hexToRgb(C.teal)},${0.7-i*0.2})`,
-          animation:`waveExpand 1.4s ease-out ${d}s forwards`, opacity:0,
-        }}/>
-      ))}
-
-      {bubbles.map((b,i) => (
-        <div key={i} style={{
-          position:"absolute", bottom:`-${b.size}px`, left:`${b.left}%`,
-          width:b.size, height:b.size, borderRadius:"50%",
-          background:`rgba(${hexToRgb(b.color)},0.5)`,
-          animation:`fullBubble ${b.dur}s ease-out ${b.delay}s forwards`,
-        }}/>
-      ))}
-
-      <div style={{
-        position:"absolute", top:"50%", left:"50%",
-        animation:"msgIn 3.6s ease forwards", opacity:0, textAlign:"center",
-      }}>
-        <div style={{ fontSize:"48px", fontWeight:"800", letterSpacing:"-0.02em", color:"#ffffff", marginBottom:"10px" }}>
-          C'est dans la poche ✦
-        </div>
-        <div style={{
-          fontSize:"11px", fontWeight:"400", letterSpacing:"0.15em", opacity:0.4,
-          background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight}, ${C.teal})`,
-          backgroundSize:"300% auto",
-          WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-          animation:"shimmer 1.2s linear infinite",
-        }}>( meïsō )</div>
-        <div style={{ fontSize:"14px", color:`rgba(${hexToRgb(C.sel)},0.6)`, marginTop:"10px", letterSpacing:"0.05em" }}>
-          Le centre brille ✨
-        </div>
+          fontSize:"26px", fontWeight:"700", color:"#ffffff",
+          letterSpacing:"-0.01em", lineHeight:1.3,
+          animation:`textRise 0.6s ease 1s both`, opacity:0,
+        }}>{label}</div>
+        {sublabel && (
+          <div style={{
+            fontSize:"11px", fontWeight:"300", color:"rgba(184,216,232,0.45)",
+            letterSpacing:"0.14em", marginTop:"10px",
+            animation:`textRise 0.6s ease 1.4s both`, opacity:0,
+          }}>{sublabel}</div>
+        )}
       </div>
     </div>
   );
@@ -371,7 +241,6 @@ function Section({ data, tab, day }) {
   const tick = useTick();
   const { triggerSection, triggerAll } = useCeleb();
   const [open, setOpen] = useState(true);
-  const [bursting, setBursting] = useState(false);
   const prevAllDone = useRef(false);
 
   const keys = data.tasks.map(t => getKey(tab, data.section, t, day));
@@ -383,7 +252,6 @@ function Section({ data, tab, day }) {
   // Detect transition to allDone
   useEffect(() => {
     if (allDone && !prevAllDone.current) {
-      setBursting(true);
       triggerSection(data.color);
     }
     prevAllDone.current = allDone;
@@ -400,10 +268,6 @@ function Section({ data, tab, day }) {
       transition:"opacity 0.4s",
       position:"relative",
     }}>
-      {bursting && (
-        <SectionBurst color={data.color} onDone={() => setBursting(false)} />
-      )}
-
       <div onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", gap:"10px",
         padding:"10px 14px",
@@ -603,10 +467,10 @@ export default function App() {
         <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
 
           {celeb === "section" && (
-            <FullCelebration onDone={() => setCeleb(null)} />
+            <EnsoCelebration label="Nickel 🙌" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
           )}
           {celeb === "all" && (
-            <AllDoneCelebration onDone={() => setCeleb(null)} />
+            <EnsoCelebration label="Le centre est prêt" sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
           )}
 
           {/* Header */}
