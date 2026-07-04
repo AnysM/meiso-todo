@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, createContext, useContext, useEffect } from "react";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
@@ -7,6 +7,7 @@ const DATA = {
     {
       section: "Cabines",
       color: "#7BB5C4",
+      icon: "🛁",
       tasks: [
         "Mettre les petites poubelles dans les cabines",
         "Mettre les flacons de vinaigre/eau dans les cabines",
@@ -18,6 +19,7 @@ const DATA = {
     {
       section: "Serviettes",
       color: "#8BA888",
+      icon: "🧺",
       tasks: [
         "Compter les serviettes restant de la veille",
         "Lancer une ou deux machines si besoin",
@@ -27,6 +29,7 @@ const DATA = {
     {
       section: "Zone poupounage & WC",
       color: "#C4A87B",
+      icon: "🚿",
       tasks: [
         "Nettoyer les WC : spray javel + liquide WC (éponge bord coupé)",
         "Nettoyer l'évier : spray vinaigre + bicarbonate (autre éponge)",
@@ -36,6 +39,7 @@ const DATA = {
     {
       section: "Jiao Gulan",
       color: "#B07BC4",
+      icon: "🍵",
       tasks: [
         "Remplir 2 boules à thé à moitié avec du Jiao Gulan",
         "Thermostat sur 4 jusqu'à ce que ça ne chauffe plus, puis baisser à 2",
@@ -44,6 +48,7 @@ const DATA = {
     {
       section: "Ménage",
       color: "#7B9BC4",
+      icon: "🧹",
       tasks: [
         "Aspirer tout le centre — étage compris (~1j/2) et le dojo, sol et futons",
         "Vider l'aspirateur après utilisation",
@@ -54,6 +59,7 @@ const DATA = {
     {
       section: "Machines",
       color: "#C47B7B",
+      icon: "🔄",
       tasks: [
         "Mettre les machines en route dès 11 serviettes sales",
         "Faire tourner les machines le plus souvent possible",
@@ -65,6 +71,7 @@ const DATA = {
     {
       section: "Cabines",
       color: "#7BB5C4",
+      icon: "🛁",
       tasks: [
         "Nettoyer les cabines avec plus de soin qu'entre deux flotteurs",
         "Fermer la porte coulissante et éteindre les lumières",
@@ -82,6 +89,7 @@ const DATA = {
     {
       section: "Poubelles",
       color: "#C47B7B",
+      icon: "🗑️",
       tasks: [
         "Sortir + changer sac : cuisine + RECYCLABLE",
         "Sortir + changer sac : évier d'en bas",
@@ -92,15 +100,17 @@ const DATA = {
     {
       section: "Zone Post-float",
       color: "#C4A87B",
+      icon: "✨",
       tasks: [
         "Remettre cotons-tiges et disques démaquillants si besoin",
-        "Spray sur la poubelle et celle des WC + produits de beauté",
+        "Spray sur la poubelle + WC + produits de beauté",
         "⚡ Spray sur les sèche-cheveux et le meuble",
       ],
     },
     {
       section: "Cuisine",
       color: "#8BA888",
+      icon: "🍽️",
       note: "Possible pendant la dernière séance",
       tasks: [
         "Éponge sur la grande table",
@@ -112,6 +122,7 @@ const DATA = {
     {
       section: "Entrée",
       color: "#8BA888",
+      icon: "🚪",
       note: "Possible pendant la dernière séance",
       tasks: [
         "Spray sur la table des explications",
@@ -122,6 +133,7 @@ const DATA = {
     {
       section: "Machines",
       color: "#7B9BC4",
+      icon: "🔄",
       tasks: [
         "Nettoyer filtre, planche, sèche-linge",
         "Lancer les deux dernières machines de la journée",
@@ -133,6 +145,7 @@ const DATA = {
     {
       section: "Jiao Gulan",
       color: "#B07BC4",
+      icon: "🍵",
       tasks: [
         "Éteindre l'appareil",
         "Vider l'infusion",
@@ -143,6 +156,7 @@ const DATA = {
     {
       section: "Autre",
       color: "#7BB5C4",
+      icon: "📋",
       note: "Possible pendant la dernière séance",
       tasks: [
         "Disposition des coussins : salon japonais + fatboys",
@@ -155,6 +169,7 @@ const DATA = {
     {
       section: "Ménage général",
       color: "#8BA888",
+      icon: "🧹",
       tasks: [
         "Miroirs, meuble à chaussures/chaussons",
         "Poussière : meuble entrée, sous les tasses zone bar, tuyauterie, rambardes, échelle...",
@@ -209,112 +224,214 @@ const DATA = {
       produit: "Enzymes",
     },
     Vendredi: {
-      journee: [
-        "Nettoyer les vitres (porte d'entrée intérieur et extérieur...)",
-      ],
-      soiree: [
-        "Nettoyer le frigo + trier/jeter si besoin",
-      ],
+      journee: ["Nettoyer les vitres (porte d'entrée intérieur et extérieur...)"],
+      soiree: ["Nettoyer le frigo + trier/jeter si besoin"],
       produit: "Javel",
     },
-    Samedi: {
-      journee: [],
-      soiree: [],
-      produit: "Enzymes",
-    },
-    Dimanche: {
-      journee: [],
-      soiree: [],
-      produit: "Enzymes",
-    },
+    Samedi: { journee: [], soiree: [], produit: "Enzymes" },
+    Dimanche: { journee: [], soiree: [], produit: "Enzymes" },
   },
 };
+
+// ── Global tick context ──────────────────────────────────────────────────────
+const TickContext = createContext(null);
+
+function useTick() {
+  return useContext(TickContext);
+}
 
 function getKey(tab, section, task, day) {
   return `meiso||${tab}||${day || ""}||${section}||${task}`;
 }
 
-function useChecked(key) {
-  const [checked, setChecked] = useState(() => {
-    try { return localStorage.getItem(key) === "1"; } catch { return false; }
-  });
-  const toggle = useCallback(() => {
-    setChecked(v => {
-      const next = !v;
-      try { localStorage.setItem(key, next ? "1" : "0"); } catch {}
-      return next;
-    });
-  }, [key]);
-  return [checked, toggle];
+function readChecked(key) {
+  try { return localStorage.getItem(key) === "1"; } catch { return false; }
 }
 
-function CheckItem({ label, storageKey }) {
-  const [checked, toggle] = useChecked(storageKey);
+function writeChecked(key, val) {
+  try { localStorage.setItem(key, val ? "1" : "0"); } catch {}
+}
+
+function countProgress(tab, day) {
+  let total = 0, done = 0;
+  const sections = tab === "hebdo"
+    ? [
+        { section: "Journée", tasks: DATA.hebdo[day]?.journee || [] },
+        { section: "Soirée", tasks: DATA.hebdo[day]?.soiree || [] },
+      ]
+    : DATA[tab];
+  sections.forEach(s => {
+    s.tasks.forEach(t => {
+      total++;
+      if (readChecked(getKey(tab, s.section, t, day))) done++;
+    });
+  });
+  return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+// ── CheckItem ────────────────────────────────────────────────────────────────
+function CheckItem({ label, storageKey, color }) {
+  const tick = useTick();
+  const checked = readChecked(storageKey);
+
+  const toggle = useCallback((e) => {
+    e.stopPropagation();
+    writeChecked(storageKey, !checked);
+    tick();
+  }, [storageKey, checked, tick]);
+
   const isWarn = label.startsWith("⚠️");
-  const isHighlight = label.startsWith("⚡");
+  const isHL = label.startsWith("⚡");
 
   return (
-    <div onClick={toggle} style={{
-      display: "flex", alignItems: "flex-start", gap: "12px",
-      padding: "11px 0", borderBottom: "1px solid rgba(255,255,255,0.05)",
-      cursor: "pointer", userSelect: "none",
-    }}>
+    <div
+      onClick={toggle}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        padding: "14px 16px",
+        marginBottom: "6px",
+        borderRadius: "12px",
+        background: checked
+          ? "rgba(255,255,255,0.03)"
+          : isWarn
+          ? "rgba(240,192,112,0.08)"
+          : isHL
+          ? `rgba(${hexToRgb(color)},0.1)`
+          : "rgba(255,255,255,0.06)",
+        cursor: "pointer",
+        userSelect: "none",
+        transition: "background 0.15s, transform 0.1s",
+        border: checked
+          ? "1px solid rgba(255,255,255,0.04)"
+          : isWarn
+          ? "1px solid rgba(240,192,112,0.2)"
+          : isHL
+          ? `1px solid rgba(${hexToRgb(color)},0.3)`
+          : "1px solid rgba(255,255,255,0.08)",
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      {/* Checkbox */}
       <div style={{
-        width: "20px", height: "20px", borderRadius: "5px", flexShrink: 0, marginTop: "2px",
-        border: checked ? "none" : "1.5px solid rgba(255,255,255,0.25)",
-        background: checked ? "#7BB5C4" : "transparent",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        width: "28px",
+        height: "28px",
+        borderRadius: "8px",
+        flexShrink: 0,
+        border: checked ? "none" : `2px solid ${checked ? color : "rgba(255,255,255,0.2)"}`,
+        background: checked ? color : "transparent",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         transition: "all 0.15s",
       }}>
-        {checked && <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-          <path d="M1 4L4 7.5L10 1" stroke="#0d1117" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>}
+        {checked && (
+          <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+            <path d="M1.5 5.5L5.5 9.5L12.5 1.5" stroke="#0d1117" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
       </div>
+
+      {/* Label */}
       <span style={{
-        fontSize: "14px", lineHeight: "1.5",
-        color: checked ? "rgba(255,255,255,0.25)" : isWarn ? "#f0c070" : isHighlight ? "#a8d8e8" : "rgba(255,255,255,0.82)",
+        fontSize: "15px",
+        lineHeight: "1.4",
+        fontWeight: checked ? "400" : "500",
+        color: checked
+          ? "rgba(255,255,255,0.2)"
+          : isWarn
+          ? "#f0c070"
+          : isHL
+          ? "#a8d8e8"
+          : "rgba(255,255,255,0.88)",
         textDecoration: checked ? "line-through" : "none",
         transition: "all 0.15s",
-      }}>{label}</span>
+        flex: 1,
+      }}>
+        {label}
+      </span>
     </div>
   );
 }
 
+// ── Section card ─────────────────────────────────────────────────────────────
 function Section({ data, tab, day }) {
+  const tick = useTick();
   const [open, setOpen] = useState(true);
+
   const keys = data.tasks.map(t => getKey(tab, data.section, t, day));
-  
-  const doneCount = keys.filter(k => {
-    try { return localStorage.getItem(k) === "1"; } catch { return false; }
-  }).length;
+  const doneCount = keys.filter(readChecked).length;
+  const total = data.tasks.length;
+  const allDone = doneCount === total;
 
   return (
-    <div style={{ marginBottom: "12px" }}>
-      <div onClick={() => setOpen(o => !o)} style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "11px 14px", background: "rgba(255,255,255,0.04)",
-        borderRadius: open ? "10px 10px 0 0" : "10px",
-        cursor: "pointer", borderLeft: `3px solid ${data.color}`,
-      }}>
-        <div>
-          <div style={{ fontSize: "11px", fontWeight: "700", color: data.color, letterSpacing: "0.06em" }}>
-            {data.section.toUpperCase()}
+    <div style={{ marginBottom: "16px" }}>
+      {/* Section header */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "14px 16px",
+          background: allDone
+            ? `rgba(${hexToRgb(data.color)},0.12)`
+            : "rgba(255,255,255,0.05)",
+          borderRadius: open ? "14px 14px 0 0" : "14px",
+          cursor: "pointer",
+          borderLeft: `4px solid ${data.color}`,
+          transition: "background 0.2s",
+        }}
+      >
+        <span style={{ fontSize: "22px", lineHeight: 1 }}>{data.icon}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "14px", fontWeight: "700", color: allDone ? data.color : "rgba(255,255,255,0.9)", letterSpacing: "0.02em" }}>
+            {data.section}
           </div>
-          {data.note && <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginTop: "1px" }}>{data.note}</div>}
+          {data.note && (
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{data.note}</div>
+          )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "11px", color: doneCount === data.tasks.length ? "#7BB5C4" : "rgba(255,255,255,0.3)" }}>
-            {doneCount}/{data.tasks.length}
-          </span>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", opacity: 0.4 }}>
-            <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
+
+        {/* Mini progress pill */}
+        <div style={{
+          padding: "4px 10px",
+          borderRadius: "20px",
+          background: allDone ? data.color : "rgba(255,255,255,0.07)",
+          fontSize: "12px",
+          fontWeight: "700",
+          color: allDone ? "#0d1117" : "rgba(255,255,255,0.4)",
+          minWidth: "48px",
+          textAlign: "center",
+        }}>
+          {allDone ? "✓" : `${doneCount}/${total}`}
         </div>
+
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "0.2s", opacity: 0.3, flexShrink: 0 }}>
+          <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
       </div>
+
+      {/* Tasks */}
       {open && (
-        <div style={{ padding: "0 14px", background: "rgba(255,255,255,0.02)", borderRadius: "0 0 10px 10px", borderLeft: `3px solid ${data.color}` }}>
+        <div style={{
+          padding: "10px 0 4px",
+          background: "rgba(255,255,255,0.02)",
+          borderRadius: "0 0 14px 14px",
+          borderLeft: `4px solid ${data.color}`,
+          borderRight: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          paddingLeft: "8px",
+          paddingRight: "8px",
+        }}>
           {data.tasks.map((task, i) => (
-            <CheckItem key={i} label={task} storageKey={keys[i]} />
+            <CheckItem
+              key={i}
+              label={task}
+              storageKey={keys[i]}
+              color={data.color}
+            />
           ))}
         </div>
       )}
@@ -322,79 +439,96 @@ function Section({ data, tab, day }) {
   );
 }
 
-function countProgress(tab, day) {
-  let total = 0, done = 0;
-  const sections = tab === "hebdo"
-    ? (() => {
-        const d = DATA.hebdo[day];
-        return [
-          { section: "Journée", tasks: d.journee },
-          { section: "Soirée", tasks: d.soiree },
-        ];
-      })()
-    : DATA[tab];
+// ── Progress bar ─────────────────────────────────────────────────────────────
+function ProgressBar({ tab, day }) {
+  const { done, total, pct } = countProgress(tab, day);
+  const allDone = done === total && total > 0;
 
-  sections.forEach(s => {
-    s.tasks.forEach(t => {
-      total++;
-      const k = tab === "hebdo" ? getKey(tab, s.section, t, day) : getKey(tab, s.section, t);
-      try { if (localStorage.getItem(k) === "1") done++; } catch {}
-    });
-  });
-  return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  return (
+    <div style={{ marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>
+          {done} / {total} tâches
+        </span>
+        <span style={{ fontSize: "13px", fontWeight: "700", color: allDone ? "#8BA888" : "#7BB5C4" }}>
+          {allDone ? "✓ Tout bon !" : `${pct}%`}
+        </span>
+      </div>
+      <div style={{ height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
+        <div style={{
+          height: "100%",
+          width: `${pct}%`,
+          background: allDone
+            ? "linear-gradient(90deg, #8BA888, #7BB5C4)"
+            : `linear-gradient(90deg, #7BB5C4, #7B9BC4)`,
+          borderRadius: "3px",
+          transition: "width 0.35s ease",
+        }} />
+      </div>
+    </div>
+  );
 }
 
+// ── Hebdo view ────────────────────────────────────────────────────────────────
 function HebdoView() {
   const todayIdx = new Date().getDay();
   const todayName = DAYS[todayIdx === 0 ? 6 : todayIdx - 1];
   const [day, setDay] = useState(todayName);
-  const [, forceUpdate] = useState(0);
   const data = DATA.hebdo[day];
-  const { done, total, pct } = countProgress("hebdo", day);
 
   const sections = [
-    { section: "Journée (8h-15h)", color: "#7BB5C4", tasks: data.journee },
-    { section: "Soirée (14h30-23h)", color: "#C4A87B", tasks: data.soiree },
+    { section: "Journée (8h-15h)", color: "#7BB5C4", icon: "☀️", tasks: data.journee },
+    { section: "Soirée (14h30-23h)", color: "#C4A87B", icon: "🌙", tasks: data.soiree },
   ].filter(s => s.tasks.length > 0);
 
   return (
-    <div onClick={() => forceUpdate(n => n + 1)}>
-      <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "12px", marginBottom: "12px", scrollbarWidth: "none" }}>
+    <div>
+      {/* Day selector */}
+      <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", scrollbarWidth: "none" }}>
         {DAYS.map(d => (
-          <button key={d} onClick={e => { e.stopPropagation(); setDay(d); }} style={{
-            flexShrink: 0, padding: "6px 12px", borderRadius: "20px", border: "none",
-            background: d === day ? "#7BB5C4" : "rgba(255,255,255,0.07)",
+          <button key={d} onClick={() => setDay(d)} style={{
+            flexShrink: 0,
+            padding: "10px 14px",
+            borderRadius: "12px",
+            border: "none",
+            background: d === day ? "#7BB5C4" : "rgba(255,255,255,0.06)",
             color: d === day ? "#0d1117" : "rgba(255,255,255,0.5)",
-            fontSize: "12px", fontWeight: d === day ? "700" : "400", cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: d === day ? "800" : "400",
+            cursor: "pointer",
+            letterSpacing: "0.01em",
           }}>{d.slice(0, 3)}</button>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        {data.produit && (
-          <div style={{
-            flex: 1, padding: "10px 14px", background: "rgba(176,123,196,0.12)",
-            borderRadius: "8px", borderLeft: "3px solid #B07BC4",
-          }}>
-            <div style={{ fontSize: "10px", color: "#B07BC4", fontWeight: "700", letterSpacing: "0.06em", marginBottom: "2px" }}>PRODUIT DU JOUR</div>
-            <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", fontWeight: "600" }}>{data.produit}</div>
-          </div>
-        )}
+      {/* Produit du jour */}
+      {data.produit && (
         <div style={{
-          flex: 1, padding: "10px 14px", background: "rgba(123,181,196,0.1)",
-          borderRadius: "8px", borderLeft: "3px solid #7BB5C4",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "14px 16px",
+          background: "rgba(176,123,196,0.1)",
+          borderRadius: "12px",
+          border: "1px solid rgba(176,123,196,0.25)",
+          marginBottom: "16px",
         }}>
-          <div style={{ fontSize: "10px", color: "#7BB5C4", fontWeight: "700", letterSpacing: "0.06em", marginBottom: "2px" }}>PROGRESSION</div>
-          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", fontWeight: "600" }}>{done}/{total} — {pct}%</div>
+          <span style={{ fontSize: "20px" }}>🧪</span>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: "700", color: "#B07BC4", letterSpacing: "0.08em", marginBottom: "2px" }}>PRODUIT DU JOUR</div>
+            <div style={{ fontSize: "16px", fontWeight: "700", color: "rgba(255,255,255,0.9)" }}>{data.produit}</div>
+          </div>
         </div>
-      </div>
+      )}
+
+      <ProgressBar tab="hebdo" day={day} />
 
       {sections.map((s, i) => (
         <Section key={i} data={s} tab="hebdo" day={day} />
       ))}
 
       {sections.length === 0 && (
-        <div style={{ textAlign: "center", padding: "48px 0", color: "rgba(255,255,255,0.2)", fontSize: "14px" }}>
+        <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.2)", fontSize: "15px" }}>
           Pas de tâches spécifiques ce jour.
         </div>
       )}
@@ -402,13 +536,23 @@ function HebdoView() {
   );
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("matin");
-  const [, forceUpdate] = useState(0);
+  const [tick, setTick] = useState(0);
+
+  const bump = useCallback(() => setTick(n => n + 1), []);
 
   const todayIdx = new Date().getDay();
   const todayName = DAYS[todayIdx === 0 ? 6 : todayIdx - 1];
-  const prog = tab !== "hebdo" ? countProgress(tab) : countProgress("hebdo", todayName);
 
   const tabs = [
     { id: "matin", label: "Matin", icon: "☀️" },
@@ -417,71 +561,78 @@ export default function App() {
   ];
 
   const resetAll = () => {
-    if (!confirm("Réinitialiser toutes les tâches cochées ?")) return;
+    if (!confirm("Réinitialiser toutes les tâches ?")) return;
     Object.keys(localStorage).filter(k => k.startsWith("meiso||")).forEach(k => localStorage.removeItem(k));
-    forceUpdate(n => n + 1);
+    bump();
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0d1117", color: "white", maxWidth: "480px", margin: "0 auto" }}>
-      {/* Sticky header */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 10,
-        background: "#0d1117",
-        paddingTop: "env(safe-area-inset-top, 12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-      }}>
-        <div style={{ padding: "16px 20px 0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
-            <div>
-              <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "3px" }}>
-                {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: "800", letterSpacing: "-0.02em" }}>
-                Meiso <span style={{ color: "#7BB5C4", fontWeight: "300" }}>·</span> Tâches
-              </div>
-            </div>
-            <button onClick={resetAll} style={{
-              background: "rgba(255,255,255,0.05)", border: "none", borderRadius: "8px",
-              color: "rgba(255,255,255,0.35)", fontSize: "11px", padding: "7px 11px", cursor: "pointer",
-            }}>↺ Reset</button>
-          </div>
+    <TickContext.Provider value={bump}>
+      <div style={{ minHeight: "100vh", background: "#0d1117", color: "white", maxWidth: "480px", margin: "0 auto" }}>
 
-          {/* Progress bar */}
-          {tab !== "hebdo" && (
-            <div style={{ marginBottom: "14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(255,255,255,0.25)", marginBottom: "5px" }}>
-                <span>{prog.done} tâches complétées</span>
-                <span>{prog.pct}%</span>
+        {/* Sticky header */}
+        <div style={{
+          position: "sticky", top: 0, zIndex: 10,
+          background: "#0d1117",
+          paddingTop: "env(safe-area-inset-top, 14px)",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
+        }}>
+          <div style={{ padding: "16px 20px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+              <div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "3px" }}>
+                  {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+                </div>
+                <div style={{ fontSize: "22px", fontWeight: "800", letterSpacing: "-0.03em" }}>
+                  Meiso <span style={{ color: "#7BB5C4", fontWeight: "300" }}>·</span> Tâches
+                </div>
               </div>
-              <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
-                <div style={{ height: "100%", width: `${prog.pct}%`, background: prog.pct === 100 ? "#8BA888" : "#7BB5C4", borderRadius: "2px", transition: "width 0.3s ease" }} />
-              </div>
+              <button onClick={resetAll} style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "10px",
+                color: "rgba(255,255,255,0.3)",
+                fontSize: "12px",
+                padding: "8px 12px",
+                cursor: "pointer",
+              }}>↺ Reset</button>
             </div>
-          )}
 
-          {/* Tabs */}
-          <div style={{ display: "flex" }}>
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{
-                flex: 1, padding: "9px 4px", border: "none",
-                borderBottom: tab === t.id ? "2px solid #7BB5C4" : "2px solid transparent",
-                background: "transparent",
-                color: tab === t.id ? "#7BB5C4" : "rgba(255,255,255,0.3)",
-                fontSize: "13px", fontWeight: tab === t.id ? "600" : "400", cursor: "pointer",
-              }}>{t.icon} {t.label}</button>
-            ))}
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: "6px", marginBottom: "0" }}>
+              {tabs.map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{
+                  flex: 1,
+                  padding: "10px 6px",
+                  border: "none",
+                  borderBottom: tab === t.id ? "3px solid #7BB5C4" : "3px solid transparent",
+                  background: "transparent",
+                  color: tab === t.id ? "#7BB5C4" : "rgba(255,255,255,0.3)",
+                  fontSize: "13px",
+                  fontWeight: tab === t.id ? "700" : "400",
+                  cursor: "pointer",
+                  letterSpacing: "0.01em",
+                }}>{t.icon} {t.label}</button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div onClick={() => forceUpdate(n => n + 1)} style={{ padding: "16px 20px", paddingBottom: "env(safe-area-inset-bottom, 32px)" }}>
-        {tab !== "hebdo" && DATA[tab].map((section, i) => (
-          <Section key={i} data={section} tab={tab} />
-        ))}
-        {tab === "hebdo" && <HebdoView />}
+        {/* Content */}
+        <div style={{ padding: "20px 16px", paddingBottom: "env(safe-area-inset-bottom, 40px)" }}>
+
+          {tab !== "hebdo" && (
+            <>
+              <ProgressBar tab={tab} key={`pb-${tab}-${tick}`} />
+              {DATA[tab].map((section, i) => (
+                <Section key={i} data={section} tab={tab} />
+              ))}
+            </>
+          )}
+
+          {tab === "hebdo" && <HebdoView key={`hebdo-${tick}`} />}
+        </div>
       </div>
-    </div>
+    </TickContext.Provider>
   );
 }
