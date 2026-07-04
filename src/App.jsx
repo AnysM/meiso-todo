@@ -142,12 +142,14 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
           />
         </svg>
 
-        {/* Text — absolutely centered in the same box */}
+        {/* Text — centered in the box via flexbox */}
         <div style={{
-          position:"absolute", inset:0,
+          position:"absolute",
+          top:0, left:0, right:0, bottom:0,
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           textAlign:"center", padding:"24px",
+          boxSizing:"border-box",
         }}>
           <div style={{
             fontSize:"24px", fontWeight:"700", color:"#ffffff",
