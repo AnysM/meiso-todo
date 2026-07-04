@@ -1,4 +1,4 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-tap-highlight-color: transparent; }
-body { background: #0d1117; color: white; font-family: -apple-system, 'Inter', sans-serif; overscroll-behavior: none; }
-button { -webkit-appearance: none; }
+body { background: #04243a; color: white; font-family: 'Dosis', -apple-system, sans-serif; overscroll-behavior: none; }
+button { -webkit-appearance: none; font-family: 'Dosis', sans-serif; }
