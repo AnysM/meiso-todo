@@ -4,6 +4,6 @@
   <path d="M 150 150 Q 105 256 150 362" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"/>
   <!-- right parenthesis -->
   <path d="M 362 150 Q 407 256 362 362" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"/>
-  <!-- lowercase m -->
-  <text x="256" y="256" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="150" fill="#ffffff" text-anchor="middle" dominant-baseline="central">m</text>
+  <!-- checkmark -->
+  <path d="M 210 258 L 242 296 L 306 218" stroke="#ffffff" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
