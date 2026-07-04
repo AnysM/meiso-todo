@@ -434,19 +434,24 @@ function ProgressBar({ tab, day }) {
   const { done, total, pct } = countProgress(tab, day);
   const allDone = done===total && total>0;
   return (
-    <div style={{ marginBottom:"20px" }}>
+    <div style={{ padding:"12px 20px 0" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
-        <span style={{ fontSize:"12px", color:C.textMuted }}>{done} / {total} tâches</span>
-        <span style={{ fontSize:"13px", fontWeight:"700", color: allDone ? C.sageLight : C.eauLight }}>
+        <span style={{ fontSize:"12px", fontWeight:"600", color: allDone ? C.sageLight : C.textSecondary }}>
+          {done} / {total} tâches
+        </span>
+        <span style={{ fontSize:"13px", fontWeight:"800", color: allDone ? C.sageLight : C.teal, letterSpacing:"-0.01em" }}>
           {allDone ? "✓ Tout bon !" : `${pct}%`}
         </span>
       </div>
-      <div style={{ height:"5px", background:"rgba(168,216,232,0.08)", borderRadius:"3px", overflow:"hidden" }}>
+      {/* Track */}
+      <div style={{ height:"8px", background:"rgba(168,216,232,0.1)", borderRadius:"6px", overflow:"hidden", border:`1px solid rgba(168,216,232,0.08)` }}>
         <div style={{
-          height:"100%", width:`${pct}%`, borderRadius:"3px", transition:"width 0.35s ease",
+          height:"100%", width:`${pct}%`, borderRadius:"6px",
+          transition:"width 0.4s cubic-bezier(0.4,0,0.2,1)",
           background: allDone
             ? `linear-gradient(90deg,${C.sage},${C.teal})`
-            : `linear-gradient(90deg,${C.eau},${C.eauLight})`,
+            : `linear-gradient(90deg,${C.eau},${C.teal},${C.eauLight})`,
+          boxShadow: pct > 0 ? `0 0 10px rgba(42,191,191,0.4)` : "none",
         }}/>
       </div>
     </div>
@@ -589,25 +594,16 @@ export default function App() {
                   color:C.textMuted, fontSize:"12px", padding:"8px 12px", cursor:"pointer",
                 }}>↺ Reset</button>
               </div>
-              <div style={{ display:"flex" }}>
-                {tabs.map(t=>(
-                  <button key={t.id} onClick={()=>setTab(t.id)} style={{
-                    flex:1, padding:"10px 6px", border:"none",
-                    borderBottom: tab===t.id ? `3px solid ${C.teal}` : "3px solid transparent",
-                    background:"transparent",
-                    color: tab===t.id ? C.teal : C.textMuted,
-                    fontSize:"13px", fontWeight:tab===t.id?"700":"400", cursor:"pointer",
-                  }}>{t.icon} {t.label}</button>
-                ))}
-              </div>
             </div>
+            {/* Progress bar */}
+            {tab !== "hebdo" && <ProgressBar tab={tab} key={`pb-${tab}-${tick}`}/>}
+            <div style={{ height:"12px" }}/>
           </div>
 
           {/* Content */}
-          <div style={{ padding:"20px 16px", paddingBottom:"env(safe-area-inset-bottom,40px)" }}>
+          <div style={{ padding:"16px 16px", paddingBottom:"calc(env(safe-area-inset-bottom,0px) + 90px)" }}>
             {tab!=="hebdo" && (
               <>
-                <ProgressBar tab={tab} key={`pb-${tab}-${tick}`}/>
                 <SortedSections sections={primary} tab={tab}/>
                 {secondary.length>0 && (
                   <>
@@ -618,6 +614,49 @@ export default function App() {
               </>
             )}
             {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
+          </div>
+
+          {/* Bottom nav */}
+          <div style={{
+            position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+            width:"100%", maxWidth:"480px", zIndex:20,
+            background:"rgba(4,36,58,0.96)",
+            backdropFilter:"blur(20px)",
+            WebkitBackdropFilter:"blur(20px)",
+            borderTop:`1px solid ${C.border}`,
+            paddingBottom:"env(safe-area-inset-bottom,0px)",
+          }}>
+            <div style={{ display:"flex", padding:"4px 0" }}>
+              {tabs.map(t => {
+                const active = tab === t.id;
+                return (
+                  <button key={t.id} onClick={()=>setTab(t.id)} style={{
+                    flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"3px",
+                    padding:"10px 6px 8px", border:"none", background:"transparent",
+                    cursor:"pointer", WebkitTapHighlightColor:"transparent", position:"relative",
+                  }}>
+                    {active && (
+                      <div style={{
+                        position:"absolute", top:0, left:"25%", right:"25%",
+                        height:"2px", borderRadius:"0 0 2px 2px",
+                        background:C.teal,
+                        boxShadow:`0 0 8px rgba(42,191,191,0.7)`,
+                      }}/>
+                    )}
+                    <span style={{
+                      fontSize:"24px", lineHeight:1,
+                      transition:"transform 0.2s",
+                      transform: active ? "scale(1.1)" : "scale(1)",
+                    }}>{t.icon}</span>
+                    <span style={{
+                      fontSize:"11px", fontWeight: active ? "700" : "400",
+                      color: active ? C.teal : C.textMuted,
+                      letterSpacing:"0.02em", transition:"color 0.2s",
+                    }}>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </CelebContext.Provider>
