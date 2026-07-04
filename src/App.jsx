@@ -190,13 +190,13 @@ function FullCelebration({ onDone }) {
         pointerEvents:"none",
       }}>
         <div style={{
-          fontSize:"22px", letterSpacing:"0.06em", textTransform:"uppercase",
+          fontSize:"48px", letterSpacing:"-0.02em", textTransform:"none",
           color:`rgba(${hexToRgb(C.sel)},0.7)`,
           marginBottom:"8px",
           fontWeight:"600",
         }}>Nickel 🙌</div>
         <div style={{
-          fontSize:"18px", fontWeight:"600", letterSpacing:"0.1em",
+          fontSize:"11px", fontWeight:"400", letterSpacing:"0.15em", opacity:0.4,
           background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight})`,
           backgroundSize:"200% auto",
           WebkitBackgroundClip:"text",
@@ -253,11 +253,11 @@ function AllDoneCelebration({ onDone }) {
         position:"absolute", top:"50%", left:"50%",
         animation:"msgIn 3.6s ease forwards", opacity:0, textAlign:"center",
       }}>
-        <div style={{ fontSize:"28px", fontWeight:"800", letterSpacing:"0.02em", textTransform:"uppercase", color:"#ffffff", marginBottom:"10px" }}>
+        <div style={{ fontSize:"48px", fontWeight:"800", letterSpacing:"-0.02em", color:"#ffffff", marginBottom:"10px" }}>
           C'est dans la poche ✦
         </div>
         <div style={{
-          fontSize:"16px", fontWeight:"600", letterSpacing:"0.12em",
+          fontSize:"11px", fontWeight:"400", letterSpacing:"0.15em", opacity:0.4,
           background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight}, ${C.teal})`,
           backgroundSize:"300% auto",
           WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
