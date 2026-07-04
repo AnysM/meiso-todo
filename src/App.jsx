@@ -458,6 +458,8 @@ export default function App() {
   const triggerSection = useCallback((color, sectionName) => {
     const { done, total } = countProgress(tab);
     const remaining = total - done;
+    // If this completes the whole tab, let the all-done celebration handle it
+    if (remaining === 0) return;
     setCelebMeta({ color, sectionName, remaining, total, done });
     setCeleb("section");
   }, [tab]);
@@ -473,11 +475,11 @@ export default function App() {
     const { done, total } = countProgress(tab);
     const key = tab;
     const prev = prevProgress.current[key] || 0;
-    if (done === total && total > 0 && prev < total) {
-      setTimeout(() => setCeleb("all"), 600);
+    if (done === total && total > 0 && prev < total && prev !== undefined) {
+      setTimeout(() => setCeleb("all"), 500);
     }
     prevProgress.current[key] = done;
-  });
+  }, [tick, tab]);
 
   const tabs = [
     { id:"matin", label:"Matin", icon:"☀️" },
@@ -508,7 +510,7 @@ export default function App() {
           return <EnsoCelebration label="Nickel" hint={hint} sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />;
         })()}
         {celeb === "all" && (
-          <EnsoCelebration label="Le centre est prêt" hint="Tout est fait pour aujourd'hui." sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
+          <EnsoCelebration label={<>Le centre<br/>est prêt</>} hint="Tout est fait pour aujourd'hui." sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
         )}
 
         <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
