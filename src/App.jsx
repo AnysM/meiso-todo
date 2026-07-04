@@ -106,7 +106,7 @@ function EnsoCelebration({ label, hint, sublabel, duration = 3400, onDone }) {
       position:"fixed", top:0, left:0, width:"100vw", height:"100vh", zIndex:100,
       display:"flex", alignItems:"center", justifyContent:"center",
       cursor:"pointer",
-      background:"rgba(4,36,58,0.92)",
+      background:"rgba(4,36,58,0.97)",
       animation:`ensoFadeIn 0.5s ease forwards`,
     }}>
       {/* Single SVG — circle + foreignObject text, all coordinates in the same space */}
