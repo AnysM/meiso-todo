@@ -484,14 +484,15 @@ export default function App() {
   return (
     <TickContext.Provider value={bump}>
       <CelebContext.Provider value={{ triggerSection, triggerAll }}>
-        <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
 
-          {celeb === "section" && (
-            <EnsoCelebration label="Nickel" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
-          )}
-          {celeb === "all" && (
-            <EnsoCelebration label="Le centre est prêt" sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
-          )}
+        {celeb === "section" && (
+          <EnsoCelebration label="Nickel" sublabel="( meïsō )" duration={3200} onDone={() => setCeleb(null)} />
+        )}
+        {celeb === "all" && (
+          <EnsoCelebration label="Le centre est prêt" sublabel="( meïsō )" duration={4000} onDone={() => setCeleb(null)} />
+        )}
+
+        <div style={{ minHeight:"100vh", background:C.bg, color:C.textPrimary, maxWidth:"480px", margin:"0 auto" }}>
 
           {/* Header */}
           <div style={{
