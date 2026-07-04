@@ -19,9 +19,9 @@ const C = {
   lavande:   "#5a6aa0",
   lavLight:  "#8899cc",
   alert:     "#c46050",
-  textPrimary:   "rgba(224,242,249,0.95)",
-  textSecondary: "rgba(184,216,232,0.6)",
-  textMuted:     "rgba(168,216,232,0.3)",
+  textPrimary:   "#ffffff",
+  textSecondary: "rgba(255,255,255,0.6)",
+  textMuted:     "rgba(255,255,255,0.3)",
 };
 
 const DATA = {
@@ -90,6 +90,8 @@ if (!document.getElementById("meiso-kf")) {
     @keyframes fullBubble { 0%{opacity:0.8;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-110vh) scale(0.5)} }
     @keyframes msgIn      { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.7)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1.05)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)} }
     @keyframes shimmer    { 0%{background-position:200% center} 100%{background-position:-200% center} }
+    @keyframes todoSpark  { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-200%) scale(0)} }
+    @keyframes sparkDot   { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
   `;
   document.head.appendChild(s);
 }
@@ -192,7 +194,7 @@ function FullCelebration({ onDone }) {
           color:`rgba(${hexToRgb(C.sel)},0.7)`,
           marginBottom:"8px",
           fontWeight:"600",
-        }}>Section complète</div>
+        }}>Nickel 🙌</div>
         <div style={{
           fontSize:"32px", fontWeight:"800", letterSpacing:"-0.02em",
           background:`linear-gradient(135deg, ${C.teal}, ${C.sel}, ${C.eauLight})`,
@@ -252,7 +254,7 @@ function AllDoneCelebration({ onDone }) {
         animation:"msgIn 3.6s ease forwards", opacity:0, textAlign:"center",
       }}>
         <div style={{ fontSize:"11px", letterSpacing:"0.25em", textTransform:"uppercase", color:C.textMuted, marginBottom:"10px" }}>
-          Tout est fait
+          C'est dans la poche ✦
         </div>
         <div style={{
           fontSize:"38px", fontWeight:"800", letterSpacing:"-0.02em",
@@ -262,10 +264,40 @@ function AllDoneCelebration({ onDone }) {
           animation:"shimmer 1.2s linear infinite",
         }}>( meïsō )</div>
         <div style={{ fontSize:"14px", color:`rgba(${hexToRgb(C.sel)},0.6)`, marginTop:"10px", letterSpacing:"0.05em" }}>
-          Le centre est prêt ✦
+          Le centre brille ✨
         </div>
       </div>
     </div>
+  );
+}
+
+// ── TodoSpark — micro burst on single task check ──────────────────────────────
+function TodoSpark({ color }) {
+  const dots = Array.from({length:6}).map((_,i) => {
+    const angle = (i / 6) * 360;
+    const dist = 18 + Math.random() * 14;
+    const tx = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const ty = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const size = 3 + Math.random() * 3;
+    const dur = 0.35 + Math.random() * 0.2;
+    return { tx, ty, size, dur, delay: Math.random() * 0.06 };
+  });
+  return (
+    <span style={{ position:"absolute", left:"37px", top:"50%", pointerEvents:"none", zIndex:10 }}>
+      {dots.map((d,i) => (
+        <span key={i} style={{
+          position:"absolute",
+          width: d.size, height: d.size,
+          borderRadius:"50%",
+          background: color,
+          boxShadow:`0 0 4px ${color}`,
+          "--tx": `${d.tx}px`,
+          "--ty": `${d.ty}px`,
+          animation:`sparkDot ${d.dur}s ease-out ${d.delay}s forwards`,
+          opacity:1,
+        }}/>
+      ))}
+    </span>
   );
 }
 
@@ -274,6 +306,7 @@ function CheckItem({ label, storageKey, color }) {
   const tick = useTick();
   const checked = readChecked(storageKey);
   const [rippling, setRippling] = useState(false);
+  const [sparking, setSparking] = useState(false);
   const isWarn = label.startsWith("⚠️");
   const isHL   = label.startsWith("⚡");
 
@@ -281,7 +314,10 @@ function CheckItem({ label, storageKey, color }) {
     e.stopPropagation();
     const next = !checked;
     writeChecked(storageKey, next);
-    if (next) { setRippling(true); setTimeout(()=>setRippling(false), 500); }
+    if (next) {
+      setRippling(true); setTimeout(()=>setRippling(false), 500);
+      setSparking(true); setTimeout(()=>setSparking(false), 600);
+    }
     tick();
   }, [storageKey, checked, tick]);
 
@@ -304,6 +340,7 @@ function CheckItem({ label, storageKey, color }) {
           pointerEvents:"none",
         }}/>
       )}
+      {sparking && <TodoSpark color={color}/>}
       <div style={{
         width:"30px", height:"30px", borderRadius:"8px", flexShrink:0,
         border: checked ? "none" : `2px solid rgba(${hexToRgb(color)},0.45)`,
