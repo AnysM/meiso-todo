@@ -399,6 +399,45 @@ function Divider({ label }) {
   );
 }
 
+// ── Today's weekly tasks (shown at bottom of Matin/Soir) ──────────────────────
+function TodayWeekly() {
+  const todayIdx = new Date().getDay();
+  const todayName = DAYS[todayIdx === 0 ? 6 : todayIdx - 1];
+  const data = DATA.hebdo[todayName];
+
+  const sections = [
+    { section:"Journée (8h-15h)", color:C.eauLight, icon:"☀️", tasks:data.journee },
+    { section:"Soirée (14h30-23h)", color:C.amber, icon:"🌙", tasks:data.soiree },
+  ].filter(s => s.tasks.length > 0);
+
+  if (sections.length === 0 && !data.produit) return null;
+
+  return (
+    <>
+      <Divider label={`En + ce ${todayName.toLowerCase()}`}/>
+
+      {data.produit && (
+        <div style={{
+          display:"flex", alignItems:"center", gap:"12px",
+          padding:"12px 16px", marginBottom:"12px",
+          background:`rgba(${hexToRgb(C.lavande)},0.12)`,
+          borderRadius:"12px", border:`1px solid rgba(${hexToRgb(C.lavande)},0.25)`,
+        }}>
+          <span style={{ fontSize:"18px" }}>🧪</span>
+          <div>
+            <div style={{ fontSize:"10px", fontWeight:"700", color:C.lavLight, letterSpacing:"0.08em" }}>PRODUIT DU JOUR</div>
+            <div style={{ fontSize:"15px", fontWeight:"700", color:"#ffffff" }}>{data.produit}</div>
+          </div>
+        </div>
+      )}
+
+      {sections.map((s, i) => (
+        <Section key={`today-${s.section}`} data={s} tab="hebdo" day={todayName}/>
+      ))}
+    </>
+  );
+}
+
 // ── Hebdo ─────────────────────────────────────────────────────────────────────
 function HebdoView() {
   const todayIdx = new Date().getDay();
@@ -544,7 +583,12 @@ export default function App() {
 
           {/* Content */}
           <div style={{ padding:"16px 16px", paddingBottom:"calc(env(safe-area-inset-bottom,0px) + 90px)" }}>
-            {tab!=="hebdo" && <SortedSections sections={allSections} tab={tab}/>}
+            {tab!=="hebdo" && (
+              <>
+                <SortedSections sections={allSections} tab={tab}/>
+                <TodayWeekly key={`tw-${tick}`}/>
+              </>
+            )}
             {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
           </div>
 
