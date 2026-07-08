@@ -485,6 +485,28 @@ function HebdoView() {
 }
 
 // ── App ───────────────────────────────────────────────────────────────────────
+// ── Daily auto-reset ──────────────────────────────────────────────────────────
+function todayStamp() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+function resetIfNewDay() {
+  try {
+    const last = localStorage.getItem("meiso-day");
+    const today = todayStamp();
+    if (last !== today) {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith("meiso||"))
+        .forEach(k => localStorage.removeItem(k));
+      localStorage.setItem("meiso-day", today);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+// Run once synchronously at module load, before first render
+resetIfNewDay();
+
 export default function App() {
   const [tab, setTab] = useState("matin");
   const [tick, setTick] = useState(0);
@@ -493,6 +515,22 @@ export default function App() {
   const prevProgress = useRef({});
 
   const bump = useCallback(() => setTick(n=>n+1), []);
+
+  // Re-check for new day whenever the app regains focus (PWA left open overnight)
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === "visible" && resetIfNewDay()) {
+        prevProgress.current = {};
+        setTick(n => n + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => {
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("focus", check);
+    };
+  }, []);
 
   const triggerSection = useCallback((color, sectionName) => {
     const { done, total } = countProgress(tab);
@@ -529,6 +567,7 @@ export default function App() {
   const resetAll = () => {
     if (!confirm("Réinitialiser toutes les tâches ?")) return;
     Object.keys(localStorage).filter(k=>k.startsWith("meiso||")).forEach(k=>localStorage.removeItem(k));
+    try { localStorage.setItem("meiso-day", todayStamp()); } catch {}
     prevProgress.current = {};
     bump();
   };
