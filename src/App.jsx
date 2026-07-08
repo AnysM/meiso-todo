@@ -400,17 +400,20 @@ function Divider({ label }) {
 }
 
 // ── Today's weekly tasks (shown at bottom of Matin/Soir) ──────────────────────
-function TodayWeekly() {
+function TodayWeekly({ tab }) {
   const todayIdx = new Date().getDay();
   const todayName = DAYS[todayIdx === 0 ? 6 : todayIdx - 1];
   const data = DATA.hebdo[todayName];
 
-  const sections = [
-    { section:"Journée (8h-15h)", color:C.eauLight, icon:"☀️", tasks:data.journee },
-    { section:"Soirée (14h30-23h)", color:C.amber, icon:"🌙", tasks:data.soiree },
-  ].filter(s => s.tasks.length > 0);
+  // Show only the half-day matching the current tab
+  const shiftTasks = tab === "soir" ? data.soiree : data.journee;
+  const shiftMeta = tab === "soir"
+    ? { section:"Soirée (14h30-23h)", color:C.amber, icon:"🌙" }
+    : { section:"Journée (8h-15h)", color:C.eauLight, icon:"☀️" };
 
-  if (sections.length === 0 && !data.produit) return null;
+  const hasTasks = shiftTasks.length > 0;
+
+  if (!hasTasks && !data.produit) return null;
 
   return (
     <>
@@ -431,9 +434,9 @@ function TodayWeekly() {
         </div>
       )}
 
-      {sections.map((s, i) => (
-        <Section key={`today-${s.section}`} data={s} tab="hebdo" day={todayName}/>
-      ))}
+      {hasTasks && (
+        <Section data={{ ...shiftMeta, tasks:shiftTasks }} tab="hebdo" day={todayName}/>
+      )}
     </>
   );
 }
@@ -504,11 +507,16 @@ function resetIfNewDay() {
   } catch {}
   return false;
 }
+// Determine current shift from time: Journée 8h-15h → matin, Soirée 15h+ → soir
+function currentShift() {
+  const h = new Date().getHours();
+  return h < 15 ? "matin" : "soir";
+}
 // Run once synchronously at module load, before first render
 resetIfNewDay();
 
 export default function App() {
-  const [tab, setTab] = useState("matin");
+  const [tab, setTab] = useState(currentShift());
   const [tick, setTick] = useState(0);
   const [celeb, setCeleb] = useState(null);
   const [celebMeta, setCelebMeta] = useState({});
@@ -625,7 +633,7 @@ export default function App() {
             {tab!=="hebdo" && (
               <>
                 <SortedSections sections={allSections} tab={tab}/>
-                <TodayWeekly key={`tw-${tick}`}/>
+                <TodayWeekly tab={tab} key={`tw-${tab}-${tick}`}/>
               </>
             )}
             {tab==="hebdo" && <HebdoView key={`hebdo-${tick}`}/>}
