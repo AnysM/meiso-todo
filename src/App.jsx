@@ -45,13 +45,13 @@ const DATA = {
     { section:"Ménage général",      color:C.sel,       icon:"🧹", priority:false, tasks:["Miroirs, meuble à chaussures/chaussons","Poussière : meuble entrée, sous les tasses zone bar, tuyauterie, rambardes, échelle...","Se référer à ASANA si besoin","Centre aussi accueillant que possible — ne pas lésiner sur torchon et sanitol"] },
   ],
   hebdo: {
-    Lundi:    { journee:["Rangement et nettoyage du comptoir + étagères + meuble porte-manteau entrée","Dépoussiérer et passer l'aspirateur derrière si besoin"], soiree:["Nettoyer les casiers pour les chaussures","Arroser les plantes","SFA 200mL"], produit:"SFA 200mL" },
-    Mardi:    { journee:["Dépoussiérer/nettoyer toutes les surfaces boisées côté cuisine et salon japonais","Remise en ordre/en beauté des espaces pour les flotteurs"], soiree:["Nettoyage approfondi de la cuisine : détartrage évier, plaques, placard sous l'évier, table..."], produit:"Enzymes" },
-    Mercredi: { journee:["Ménage salle de soin : vider poubelle, dépoussiérer/nettoyer surfaces, retirer toiles d'araignée, passer l'aspirateur"], soiree:["Dépoussiérer/nettoyer toutes les surfaces boisées côté dojo","Remise en ordre/en beauté des espaces pour les flotteurs"], produit:"Javel" },
-    Jeudi:    { journee:["Nettoyer meubles cabines (traces de sel et poussière)","Déplacer meubles si besoin pour dépoussiérer et passer l'aspirateur derrière"], soiree:["Ranger/trier/nettoyer les bureaux (vitres dessus + surfaces dessous)","Nettoyer le coin repos derrière la cuisine"], produit:"Enzymes" },
-    Vendredi: { journee:["Nettoyer les vitres (porte d'entrée intérieur et extérieur...)"], soiree:["Nettoyer le frigo + trier/jeter si besoin"], produit:"Javel" },
-    Samedi:   { journee:[], soiree:[], produit:"Enzymes" },
-    Dimanche: { journee:[], soiree:[], produit:"Enzymes" },
+    Lundi:    { journee:["Rangement et nettoyage du comptoir + étagères + meuble porte-manteau entrée","Dépoussiérer et passer l'aspirateur derrière si besoin"], soiree:["Nettoyer les casiers pour les chaussures","Arroser les plantes","SFA 200mL","Enzymes : 50mL (trait du scotch sur le doseur) dans la bonde de la douche cabine 1, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 2, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 3, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans l'évier du bas près de la tisanière"], produit:"Enzymes" },
+    Mardi:    { journee:["Dépoussiérer/nettoyer toutes les surfaces boisées côté cuisine et salon japonais","Remise en ordre/en beauté des espaces pour les flotteurs"], soiree:["Nettoyage approfondi de la cuisine : détartrage évier, plaques, placard sous l'évier, table..."], produit:null },
+    Mercredi: { journee:["Ménage salle de soin : vider poubelle, dépoussiérer/nettoyer surfaces, retirer toiles d'araignée, passer l'aspirateur"], soiree:["Dépoussiérer/nettoyer toutes les surfaces boisées côté dojo","Remise en ordre/en beauté des espaces pour les flotteurs","Enzymes : 50mL (trait du scotch sur le doseur) dans la bonde de la douche cabine 1, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 2, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 3, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans l'évier du bas près de la tisanière"], produit:"Enzymes" },
+    Jeudi:    { journee:["Nettoyer meubles cabines (traces de sel et poussière)","Déplacer meubles si besoin pour dépoussiérer et passer l'aspirateur derrière"], soiree:["Ranger/trier/nettoyer les bureaux (vitres dessus + surfaces dessous)","Nettoyer le coin repos derrière la cuisine"], produit:null },
+    Vendredi: { journee:["Nettoyer les vitres (porte d'entrée intérieur et extérieur...)"], soiree:["Nettoyer le frigo + trier/jeter si besoin","Enzymes : 50mL (trait du scotch sur le doseur) dans la bonde de la douche cabine 1, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 2, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 3, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans l'évier du bas près de la tisanière"], produit:"Enzymes" },
+    Samedi:   { journee:[], soiree:[], produit:null },
+    Dimanche: { journee:[], soiree:["Enzymes : 50mL (trait du scotch sur le doseur) dans la bonde de la douche cabine 1, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 2, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans la bonde de la douche cabine 3, puis faire couler l'eau 2-3 s","Enzymes : 50mL dans l'évier du bas près de la tisanière"], produit:"Enzymes" },
   },
 };
 
@@ -421,15 +421,18 @@ function TodayWeekly({ tab }) {
 
       {data.produit && (
         <div style={{
-          display:"flex", alignItems:"center", gap:"12px",
+          display:"flex", alignItems:"flex-start", gap:"12px",
           padding:"12px 16px", marginBottom:"12px",
           background:`rgba(${hexToRgb(C.lavande)},0.12)`,
           borderRadius:"12px", border:`1px solid rgba(${hexToRgb(C.lavande)},0.25)`,
         }}>
-          <span style={{ fontSize:"18px" }}>🧪</span>
+          <span style={{ fontSize:"18px", marginTop:"2px" }}>🧪</span>
           <div>
-            <div style={{ fontSize:"10px", fontWeight:"700", color:C.lavLight, letterSpacing:"0.08em" }}>PRODUIT DU JOUR</div>
+            <div style={{ fontSize:"10px", fontWeight:"700", color:C.lavLight, letterSpacing:"0.08em" }}>PRODUIT DU SOIR</div>
             <div style={{ fontSize:"15px", fontWeight:"700", color:"#ffffff" }}>{data.produit}</div>
+            <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.5)", marginTop:"3px", lineHeight:1.4 }}>
+              50mL dans chaque bonde de douche (3 cabines) + évier du bas. Faire couler l'eau 2-3 s après.
+            </div>
           </div>
         </div>
       )}
@@ -464,17 +467,32 @@ function HebdoView() {
           }}>{d.slice(0,3)}</button>
         ))}
       </div>
-      {data.produit && (
+      {data.produit ? (
         <div style={{
-          display:"flex", alignItems:"center", gap:"12px",
+          display:"flex", alignItems:"flex-start", gap:"12px",
           padding:"14px 16px", marginBottom:"16px",
           background:`rgba(${hexToRgb(C.lavande)},0.15)`,
           borderRadius:"12px", border:`1px solid rgba(${hexToRgb(C.lavande)},0.3)`,
         }}>
-          <span style={{ fontSize:"22px" }}>🧪</span>
+          <span style={{ fontSize:"22px", marginTop:"2px" }}>🧪</span>
           <div>
-            <div style={{ fontSize:"10px", fontWeight:"700", color:C.lavLight, letterSpacing:"0.08em", marginBottom:"2px" }}>PRODUIT DU JOUR</div>
+            <div style={{ fontSize:"10px", fontWeight:"700", color:C.lavLight, letterSpacing:"0.08em", marginBottom:"2px" }}>PRODUIT DU SOIR</div>
             <div style={{ fontSize:"16px", fontWeight:"700", color:C.textPrimary }}>{data.produit}</div>
+            <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.5)", marginTop:"4px", lineHeight:1.4 }}>
+              50mL dans chaque bonde de douche (3 cabines) + évier du bas. Faire couler l'eau 2-3 s après.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          display:"flex", alignItems:"center", gap:"12px",
+          padding:"12px 16px", marginBottom:"16px",
+          background:"rgba(255,255,255,0.03)",
+          borderRadius:"12px", border:`1px solid ${C.border}`,
+        }}>
+          <span style={{ fontSize:"18px", opacity:0.5 }}>🚫</span>
+          <div style={{ fontSize:"12px", color:C.textMuted }}>
+            Pas de produit canalisations ce jour.
           </div>
         </div>
       )}
